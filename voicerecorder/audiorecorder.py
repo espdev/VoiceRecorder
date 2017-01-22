@@ -4,7 +4,9 @@
 """
 
 import collections
+
 import pyaudio as pa
+from PyQt5 import QtCore
 
 
 AudioRecord = collections.namedtuple(
@@ -20,11 +22,16 @@ AudioRecord = collections.namedtuple(
     ))
 
 
-class AudioRecorder:
+class AudioRecorder(QtCore.QObject):
     """Asynchronous audio recorder based on PyAudio
     """
 
-    def __init__(self, fmt=pa.paInt16, channels=2, rate=44100, frames_per_buffer=1024):
+    record_updated = QtCore.pyqtSignal(float)
+
+    def __init__(self, fmt=pa.paInt16, channels=2, rate=44100,
+                 frames_per_buffer=1024, parent=None):
+        super().__init__(parent=parent)
+
         self.__format = fmt
         self.__channels = channels
         self.__rate = rate
@@ -38,6 +45,10 @@ class AudioRecorder:
         self.__frames = b''
         self.__count_frames = 0
         self.__duration = 0.0
+
+        self.__status_timer = QtCore.QTimer(self)
+        self.__status_timer.setInterval(500)
+        self.__status_timer.timeout.connect(self.__on_update_status)
 
     def __del__(self):
         self.stop()
@@ -70,6 +81,7 @@ class AudioRecorder:
             return
 
         self.__status = pa.paContinue
+        self.__status_timer.start()
 
         self.__stream = self.__audio.open(
             input=True,
@@ -91,6 +103,7 @@ class AudioRecorder:
         self.__stream.stop_stream()
         self.__stream.close()
         self.__stream = None
+        self.__status_timer.stop()
 
     def clear(self):
         self.__frames = b''
@@ -116,3 +129,6 @@ class AudioRecorder:
             self.__count_frames / self.__rate * self.__frames_per_buffer)
 
         return data, self.__status
+
+    def __on_update_status(self):
+        self.record_updated.emit(self.__duration)
