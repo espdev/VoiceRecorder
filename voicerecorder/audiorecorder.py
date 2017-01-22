@@ -23,7 +23,7 @@ class AudioRecorder:
         self.__frames = b''
 
     def __del__(self):
-        self.stop_recording()
+        self.stop()
         self.__audio.terminate()
 
     @property
@@ -40,7 +40,7 @@ class AudioRecorder:
             return False
         return self.__stream.is_active()
 
-    def start_recording(self, input_device_index=None):
+    def record(self, input_device_index=None):
         if self.__stream is not None:
             return
 
@@ -54,10 +54,10 @@ class AudioRecorder:
             channels=self.__channels,
             rate=self.__rate,
             frames_per_buffer=self.__frames_per_buffer,
-            stream_callback=self.__record_callback,
+            stream_callback=self.__record,
         )
 
-    def stop_recording(self):
+    def stop(self):
         if self.__stream is None:
             return
 
@@ -67,7 +67,7 @@ class AudioRecorder:
         self.__stream.close()
         self.__stream = None
 
-    def clear_recorded_frames(self):
+    def clear(self):
         self.__frames = b''
 
     def write_wav(self, filename):
@@ -77,6 +77,6 @@ class AudioRecorder:
             wf.setframerate(self.__rate)
             wf.writeframes(self.__frames)
 
-    def __record_callback(self, data, frame_count, time_info, status):
+    def __record(self, data, frame_count, time_info, status):
         self.__frames += data
         return data, self.__status
