@@ -83,7 +83,7 @@ class AudioRecorder:
         self.__frames = b''
         self.__count_frames = 0
 
-    def write_wav(self, filename):
+    def write_wav(self, filename: str):
         with wave.open(filename, 'wb') as wf:
             wf.setnchannels(self.__channels)
             wf.setsampwidth(self.sample_size)
