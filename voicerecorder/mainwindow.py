@@ -49,8 +49,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.pbRecordingStartAndStop.toggled.connect(self.__on_start_stop)
         self.ui.pbRecordingPause.toggled.connect(self.__on_pause)
-
+        self.ui.pbRemoveRecords.clicked.connect(self.__remove_selected_records)
         self.ui.tableRecords.cellDoubleClicked.connect(self.__on_play_record)
+        self.ui.tableRecords.itemSelectionChanged.connect(
+            self.__on_change_selected_records)
+        self.ui.tableRecords.installEventFilter(self)
 
         self.__audio_recorder.record_updated.connect(
             self.__on_update_duration_time)
@@ -60,6 +63,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def closeEvent(self, event):
         self.__write_settings()
+
+    def eventFilter(self, obj, event: QtGui.QKeyEvent):
+        if obj is not self.ui.tableRecords:
+            return False
+        if event.type() != QtCore.QEvent.KeyPress:
+            return False
+        if event.key() != QtCore.Qt.Key_Delete:
+            return False
+
+        self.__remove_selected_records()
+        return True
 
     @property
     def ui(self):
@@ -96,6 +110,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         record_url = QtCore.QUrl(record_info.filename.replace('\\', '/'))
         QtGui.QDesktopServices.openUrl(record_url)
+
+    def __on_change_selected_records(self):
+        is_selected = len(self.ui.tableRecords.selectedItems()) > 0
+        self.ui.pbRemoveRecords.setEnabled(is_selected)
 
     def __start_recording(self):
         self.__audio_recorder.record()
@@ -153,3 +171,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
         for i, record_info in enumerate(records_info):
             self.__add_record_info_to_table(i, record_info)
+
+    def __remove_selected_records(self):
+        selected_items = self.ui.tableRecords.selectedItems()
+
+        if not selected_items:
+            return False
+
+        records_for_remove = [
+            (self.ui.tableRecords.row(item), item.data(QtCore.Qt.UserRole))
+            for item in selected_items if item.data(QtCore.Qt.UserRole)]
+
+        for row, record_info in records_for_remove:
+            self.__records_manager.remove_record(record_info)
+            self.ui.tableRecords.removeRow(row)
