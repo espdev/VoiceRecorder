@@ -149,6 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def __update_records_info(self):
         records_info = self.__records_manager.get_records_info()
         self.ui.tableRecords.clearContents()
+        self.ui.tableRecords.setRowCount(0)
 
         for i, record_info in enumerate(records_info):
             self.__add_record_info_to_table(i, record_info)
