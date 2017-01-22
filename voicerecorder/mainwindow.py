@@ -7,6 +7,7 @@ import os
 import datetime
 
 from PyQt5 import QtWidgets
+from PyQt5 import QtGui
 from PyQt5 import QtCore
 
 from . import __app_name__
@@ -37,7 +38,7 @@ class MainWindow(QtWidgets.QMainWindow):
             1, QtWidgets.QHeaderView.ResizeToContents)
 
         settings_fname = os.path.normpath(
-            os.path.join(helperutils.get_app_config_dir(), __app_name__ + '.ini'))
+            os.path.join(helperutils.get_app_config_dir(), __app_name__+'.ini'))
 
         self.__settings = QtCore.QSettings(
             settings_fname, QtCore.QSettings.IniFormat, self)
@@ -48,6 +49,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.pbRecordingStartAndStop.toggled.connect(self.__on_start_stop)
         self.ui.pbRecordingPause.toggled.connect(self.__on_pause)
+
+        self.ui.tableRecords.cellDoubleClicked.connect(self.__on_play_record)
 
         self.__audio_recorder.record_updated.connect(
             self.__on_update_duration_time)
@@ -87,6 +90,13 @@ class MainWindow(QtWidgets.QMainWindow):
             seconds=int(self.__audio_recorder.duration))
         self.ui.labelRecordDuration.setText(str(duration_delta))
 
+    def __on_play_record(self, index):
+        record_info = self.ui.tableRecords.item(index, 0).data(
+            QtCore.Qt.UserRole)
+
+        record_url = QtCore.QUrl(record_info.filename.replace('\\', '/'))
+        QtGui.QDesktopServices.openUrl(record_url)
+
     def __start_recording(self):
         self.__audio_recorder.record()
 
@@ -125,6 +135,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.tableRecords.insertRow(index)
 
         date_item = QtWidgets.QTableWidgetItem(str(record_info.date))
+        date_item.setData(QtCore.Qt.UserRole, record_info)
+
         dur_item = QtWidgets.QTableWidgetItem(str(record_info.duration))
         dur_item.setTextAlignment(QtCore.Qt.AlignCenter)
 
