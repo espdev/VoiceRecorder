@@ -3,8 +3,21 @@
 """
 """
 
-import wave
+import collections
 import pyaudio as pa
+
+
+AudioRecord = collections.namedtuple(
+    'AudioRecord', (
+        'data',
+        'duration',
+        'count_frames',
+        'format',
+        'channels',
+        'rate',
+        'frames_per_buffer',
+        'sample_size',
+    ))
 
 
 class AudioRecorder:
@@ -66,7 +79,7 @@ class AudioRecorder:
             channels=self.__channels,
             rate=self.__rate,
             frames_per_buffer=self.__frames_per_buffer,
-            stream_callback=self.__record,
+            stream_callback=self.__record_callback,
         )
 
     def stop(self):
@@ -84,14 +97,19 @@ class AudioRecorder:
         self.__count_frames = 0
         self.__duration = 0
 
-    def write_wav(self, filename: str):
-        with wave.open(filename, 'wb') as wf:
-            wf.setnchannels(self.__channels)
-            wf.setsampwidth(self.sample_size)
-            wf.setframerate(self.__rate)
-            wf.writeframes(self.__frames)
+    def get_record(self):
+        return AudioRecord(
+            data=self.frames,
+            duration=self.duration,
+            count_frames=self.count_frames,
+            format=self.__format,
+            channels=self.__channels,
+            rate=self.__rate,
+            frames_per_buffer=self.__frames_per_buffer,
+            sample_size=self.sample_size,
+        )
 
-    def __record(self, data: bytes, frame_count, time_info, status):
+    def __record_callback(self, data: bytes, frame_count, time_info, status):
         self.__frames += data
         self.__count_frames += 1
         self.__duration = (
