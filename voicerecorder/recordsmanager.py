@@ -21,7 +21,7 @@ DATETIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
 
 
 RecordInfo = collections.namedtuple(
-    'SavedRecordInfo', ('filename', 'date', 'duration'))
+    'RecordInfo', ('filename', 'date', 'duration'))
 RecordInfoList = typing.List[RecordInfo]
 
 
