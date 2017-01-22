@@ -46,13 +46,7 @@ class RecordsManager(QtCore.QObject):
         if not os.path.exists(self.__records_dir):
             os.makedirs(self.__records_dir)
 
-        record_date = datetime.datetime.now()
-        record_date_str = record_date.strftime(f'{DATETIME_FORMAT}')
-        record_file_name = f'voice-{record_date_str}.wav'
-        record_file_path = os.path.join(self.__records_dir, record_file_name)
-
-        return self.__write_record_info(
-            record_file_path, record_date_str, record)
+        return self.__write_record_info(record)
 
     def get_records_info(self) -> RecordInfoList:
         records_info = []
@@ -97,19 +91,25 @@ class RecordsManager(QtCore.QObject):
             wf.setframerate(record.rate)
             wf.writeframes(record.data)
 
-    def __write_record_info(self, filename, date_str, record):
-        # TODO: use OGG/Vorbis audio format
-        self.__write_wav(filename, record)
+    def __write_record_info(self, record):
+        record_date = datetime.datetime.now()
+        record_date_str = record_date.strftime(f'{DATETIME_FORMAT}')
 
-        with helperutils.qsettings_group(self.__records_info)(date_str):
-            self.__records_info.setValue('FileName', filename)
+        record_file_name = f'voice-{record_date_str}.wav'
+        record_file_path = os.path.join(self.__records_dir, record_file_name)
+
+        # TODO: use OGG/Vorbis audio format
+        self.__write_wav(record_file_path, record)
+
+        with helperutils.qsettings_group(self.__records_info)(record_date_str):
+            self.__records_info.setValue('FileName', record_file_path)
             self.__records_info.setValue('Duration', record.duration)
 
-        date = datetime.datetime.strptime(date_str, DATETIME_FORMAT)
+        date = datetime.datetime.strptime(record_date_str, DATETIME_FORMAT)
         duration = datetime.timedelta(seconds=int(record.duration))
 
         return RecordInfo(
-            filename=filename,
+            filename=record_file_path,
             date=date,
             duration=duration,
         )
