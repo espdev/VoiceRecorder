@@ -73,6 +73,12 @@ class RecordsManager(QtCore.QObject):
 
         return records_info
 
+    def remove_record(self, record_info: RecordInfo):
+        record_group = record_info.date.strftime(DATETIME_FORMAT)
+
+        os.remove(record_info.filename)
+        self.__records_info.remove(record_group)
+
     def read_settings(self, settings: QtCore.QSettings):
         with helperutils.qsettings_group(settings)('Path'):
             self.__records_dir = settings.value(
