@@ -82,6 +82,7 @@ class AudioRecorder:
     def clear(self):
         self.__frames = b''
         self.__count_frames = 0
+        self.__duration = 0
 
     def write_wav(self, filename: str):
         with wave.open(filename, 'wb') as wf:
