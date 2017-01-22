@@ -3,9 +3,17 @@
 """
 """
 
+import sys
 import contextlib
 
 from PyQt5 import QtCore
+
+
+def set_exception_hook():
+    def _exception_hook(exctype, value, traceback):
+        sys.__excepthook__(exctype, value, traceback)
+
+    sys.excepthook = _exception_hook
 
 
 def get_app_config_dir():

@@ -11,10 +11,13 @@ from PyQt5 import QtWidgets
 from voicerecorder import __app_name__
 from voicerecorder import __version__
 
+from voicerecorder import helperutils
 from voicerecorder import mainwindow
 
 
 def main():
+    helperutils.set_exception_hook()
+
     app = QtWidgets.QApplication(sys.argv)
 
     app.setApplicationName(__app_name__)
