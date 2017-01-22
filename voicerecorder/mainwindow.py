@@ -50,6 +50,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pbRecordingStartAndStop.toggled.connect(self.__on_start_stop)
         self.ui.pbRecordingPause.toggled.connect(self.__on_pause)
         self.ui.pbRemoveRecords.clicked.connect(self.__remove_selected_records)
+
         self.ui.tableRecords.cellDoubleClicked.connect(self.__on_play_record)
         self.ui.tableRecords.itemSelectionChanged.connect(
             self.__on_change_selected_records)
