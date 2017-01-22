@@ -7,6 +7,7 @@ import os
 import datetime
 import collections
 import wave
+import typing
 
 from PyQt5 import QtCore
 
@@ -19,8 +20,9 @@ RECORDS_INFO_FILENAME = 'Records.ini'
 DATETIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
 
 
-SavedRecordInfo = collections.namedtuple(
+RecordInfo = collections.namedtuple(
     'SavedRecordInfo', ('filename', 'date', 'duration'))
+RecordInfoList = typing.List[RecordInfo]
 
 
 class RecordsManager(QtCore.QObject):
@@ -51,7 +53,7 @@ class RecordsManager(QtCore.QObject):
 
         self.__write_record_info(record_file_path, record_date_str, record)
 
-    def get_records_info(self):
+    def get_records_info(self) -> RecordInfoList:
         records_info = []
         settings_group = helperutils.qsettings_group(self.__records_info)
 
@@ -63,7 +65,7 @@ class RecordsManager(QtCore.QObject):
                 duration = self.__records_info.value('Duration', type=float)
 
             if os.path.exists(file_name):
-                records_info.append(SavedRecordInfo(
+                records_info.append(RecordInfo(
                     filename=file_name,
                     date=date,
                     duration=datetime.timedelta(seconds=int(duration)),
