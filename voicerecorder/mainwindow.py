@@ -29,6 +29,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(f'{__app_name__} - {__version__}')
         self.ui.labelRecordDuration.setVisible(False)
 
+        self.ui.tableRecords.horizontalHeader().setFixedHeight(37)
+
+        self.ui.tableRecords.horizontalHeader().setSectionResizeMode(
+            0, QtWidgets.QHeaderView.Stretch)
+        self.ui.tableRecords.horizontalHeader().setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeToContents)
+
         settings_fname = os.path.normpath(
             os.path.join(helperutils.get_app_config_dir(), __app_name__ + '.ini'))
 
@@ -46,6 +53,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.__on_update_duration_time)
 
         self.__read_settings()
+        self.__update_records_info()
 
     def closeEvent(self, event):
         self.__write_settings()
@@ -87,12 +95,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __stop_recording(self):
         self.__audio_recorder.stop()
-        self.__write_to_file()
+        self.__save_record()
         self.__audio_recorder.clear()
         self.__on_update_duration_time()
 
-    def __write_to_file(self):
-        self.__records_manager.save_record(self.__audio_recorder.get_record())
+    def __save_record(self):
+        record_info = self.__records_manager.save_record(
+            self.__audio_recorder.get_record())
+
+        self.__add_record_info_to_table(0, record_info)
 
     def __read_settings(self):
         with self.__settings_group('UI'):
@@ -109,3 +120,23 @@ class MainWindow(QtWidgets.QMainWindow):
             self.__settings.setValue('WindowState', self.saveState())
 
         self.__records_manager.write_settings(self.__settings)
+
+    def __add_record_info_to_table(self, index, record_info):
+        self.ui.tableRecords.insertRow(index)
+
+        date_item = QtWidgets.QTableWidgetItem(str(record_info.date))
+        dur_item = QtWidgets.QTableWidgetItem(str(record_info.duration))
+        dur_item.setTextAlignment(QtCore.Qt.AlignCenter)
+
+        self.ui.tableRecords.setItem(index, 0, date_item)
+        self.ui.tableRecords.setItem(index, 1, dur_item)
+
+        self.ui.tableRecords.verticalHeader().setSectionResizeMode(
+            index, QtWidgets.QHeaderView.ResizeToContents)
+
+    def __update_records_info(self):
+        records_info = self.__records_manager.get_records_info()
+        self.ui.tableRecords.clearContents()
+
+        for i, record_info in enumerate(records_info):
+            self.__add_record_info_to_table(i, record_info)

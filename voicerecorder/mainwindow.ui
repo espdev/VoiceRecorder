@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>567</width>
-    <height>357</height>
+    <height>504</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -79,24 +79,33 @@
      </layout>
     </item>
     <item>
-     <widget class="Line" name="line">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+     <widget class="QGroupBox" name="gboxRecords">
+      <property name="title">
+       <string>Records</string>
       </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QTableWidget" name="tableRecords">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <column>
+          <property name="text">
+           <string>Date</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Duration</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
      </widget>
-    </item>
-    <item>
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>210</height>
-       </size>
-      </property>
-     </spacer>
     </item>
    </layout>
   </widget>
