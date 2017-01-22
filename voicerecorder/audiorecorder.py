@@ -90,7 +90,7 @@ class AudioRecorder:
             wf.setframerate(self.__rate)
             wf.writeframes(self.__frames)
 
-    def __record(self, data, frame_count, time_info, status):
+    def __record(self, data: bytes, frame_count, time_info, status):
         self.__frames += data
         self.__count_frames += 1
         self.__duration = (
