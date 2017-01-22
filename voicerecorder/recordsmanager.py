@@ -51,7 +51,8 @@ class RecordsManager(QtCore.QObject):
         record_file_name = f'voice-{record_date_str}.wav'
         record_file_path = os.path.join(self.__records_dir, record_file_name)
 
-        self.__write_record_info(record_file_path, record_date_str, record)
+        return self.__write_record_info(
+            record_file_path, record_date_str, record)
 
     def get_records_info(self) -> RecordInfoList:
         records_info = []
@@ -61,17 +62,20 @@ class RecordsManager(QtCore.QObject):
             date = datetime.datetime.strptime(record, DATETIME_FORMAT)
 
             with settings_group(record):
-                file_name = self.__records_info.value('FileName')
+                filename = self.__records_info.value('FileName')
                 duration = self.__records_info.value('Duration', type=float)
 
-            if os.path.exists(file_name):
+            if os.path.exists(filename):
                 records_info.append(RecordInfo(
-                    filename=file_name,
+                    filename=filename,
                     date=date,
                     duration=datetime.timedelta(seconds=int(duration)),
                 ))
             else:
                 self.__records_info.remove(record)
+
+        records_info.sort(key=lambda x: x.date)
+        records_info.reverse()
 
         return records_info
 
@@ -100,3 +104,12 @@ class RecordsManager(QtCore.QObject):
         with helperutils.qsettings_group(self.__records_info)(date_str):
             self.__records_info.setValue('FileName', filename)
             self.__records_info.setValue('Duration', record.duration)
+
+        date = datetime.datetime.strptime(date_str, DATETIME_FORMAT)
+        duration = datetime.timedelta(seconds=int(record.duration))
+
+        return RecordInfo(
+            filename=filename,
+            date=date,
+            duration=duration,
+        )
