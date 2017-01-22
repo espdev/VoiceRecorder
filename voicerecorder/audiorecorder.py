@@ -8,7 +8,7 @@ import pyaudio as pa
 
 
 class AudioRecorder:
-    """
+    """Asynchronous audio recorder based on PyAudio
     """
 
     def __init__(self, fmt=pa.paInt16, channels=2, rate=44100, frames_per_buffer=1024):
@@ -18,9 +18,13 @@ class AudioRecorder:
         self.__frames_per_buffer = frames_per_buffer
 
         self.__audio = pa.PyAudio()
+
         self.__stream = None
         self.__status = None
+
         self.__frames = b''
+        self.__count_frames = 0
+        self.__duration = 0.0
 
     def __del__(self):
         self.stop()
@@ -29,6 +33,14 @@ class AudioRecorder:
     @property
     def frames(self):
         return self.__frames
+
+    @property
+    def count_frames(self):
+        return self.__count_frames
+
+    @property
+    def duration(self):
+        return self.__duration
 
     @property
     def sample_size(self):
@@ -69,6 +81,7 @@ class AudioRecorder:
 
     def clear(self):
         self.__frames = b''
+        self.__count_frames = 0
 
     def write_wav(self, filename):
         with wave.open(filename, 'wb') as wf:
@@ -79,4 +92,8 @@ class AudioRecorder:
 
     def __record(self, data, frame_count, time_info, status):
         self.__frames += data
+        self.__count_frames += 1
+        self.__duration = (
+            self.__count_frames / self.__rate * self.__frames_per_buffer)
+
         return data, self.__status
