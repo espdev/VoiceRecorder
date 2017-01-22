@@ -10,13 +10,13 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtGui
 from PyQt5 import QtCore
 
-from . import __app_name__
-from . import __version__
-
 from . import mainwindow_ui
 from . import audiorecorder
 from . import recordsmanager
 from . import helperutils
+
+from . import __app_name__
+from . import __version__
 
 
 class MainWindow(QtWidgets.QMainWindow):
