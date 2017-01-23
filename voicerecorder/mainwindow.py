@@ -30,12 +30,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(f'{__app_name__} - {__version__}')
         self.ui.labelRecordDuration.setVisible(False)
 
-        self.ui.tableRecords.horizontalHeader().setFixedHeight(37)
-
         self.ui.tableRecords.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.Stretch)
         self.ui.tableRecords.horizontalHeader().setSectionResizeMode(
             1, QtWidgets.QHeaderView.ResizeToContents)
+        self.ui.tableRecords.verticalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.ResizeToContents)
 
         settings_fname = os.path.normpath(
             os.path.join(helperutils.get_app_config_dir(), __app_name__+'.ini'))
@@ -161,9 +161,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.tableRecords.setItem(index, 0, date_item)
         self.ui.tableRecords.setItem(index, 1, dur_item)
-
-        self.ui.tableRecords.verticalHeader().setSectionResizeMode(
-            index, QtWidgets.QHeaderView.ResizeToContents)
 
     def __update_records_info(self):
         records_info = self.__records_manager.get_records_info()
