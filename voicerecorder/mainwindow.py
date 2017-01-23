@@ -180,9 +180,11 @@ class MainWindow(QtWidgets.QMainWindow):
             return False
 
         records_for_remove = [
-            (self.ui.tableRecords.row(item), item.data(QtCore.Qt.UserRole))
-            for item in selected_items if item.data(QtCore.Qt.UserRole)]
+            (item, item.data(QtCore.Qt.UserRole))
+            for item in selected_items if item.data(QtCore.Qt.UserRole)
+        ]
 
-        for row, record_info in records_for_remove:
+        for item, record_info in records_for_remove:
+            row = self.ui.tableRecords.row(item)
             self.__records_manager.remove_record(record_info)
             self.ui.tableRecords.removeRow(row)
