@@ -17,7 +17,7 @@ from . import __app_name__
 
 
 RECORDS_INFO_FILENAME = 'Records.ini'
-DATETIME_FORMAT = '%Y-%m-%d-%H-%M-%S'
+DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
 
 
 RecordInfo = collections.namedtuple(

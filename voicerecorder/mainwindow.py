@@ -21,6 +21,8 @@ from . import __version__
 
 class MainWindow(QtWidgets.QMainWindow):
 
+    RECORD_DATETIME_FORMAT = '%d.%m.%Y %H:%M:%S'
+
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
@@ -153,7 +155,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def __add_record_info_to_table(self, index, record_info):
         self.ui.tableRecords.insertRow(index)
 
-        date_item = QtWidgets.QTableWidgetItem(str(record_info.date))
+        date_item = QtWidgets.QTableWidgetItem(
+            record_info.date.strftime(self.RECORD_DATETIME_FORMAT))
         date_item.setData(QtCore.Qt.UserRole, record_info)
 
         dur_item = QtWidgets.QTableWidgetItem(str(record_info.duration))
