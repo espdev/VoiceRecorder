@@ -62,7 +62,7 @@ class RecordsManager(QtCore.QObject):
                 filename = self.__records_info.value('FileName')
                 duration = self.__records_info.value('Duration', type=float)
 
-            if os.path.exists(filename):
+            if os.path.exists(self.__get_filename_with_extension(filename)):
                 records_info.append(RecordInfo(
                     filename=filename,
                     date=date,
@@ -79,9 +79,7 @@ class RecordsManager(QtCore.QObject):
     def remove_record(self, record_info: RecordInfo):
         record_group = record_info.date.strftime(DATETIME_FORMAT)
 
-        filename = glob.glob(record_info.filename + '.*')[0]
-
-        os.remove(filename)
+        os.remove(self.__get_filename_with_extension(record_info.filename))
         self.__records_info.remove(record_group)
 
     def read_settings(self, settings: QtCore.QSettings):
@@ -112,6 +110,10 @@ class RecordsManager(QtCore.QObject):
         )
 
         sound.export(filename + '.ogg', format='ogg', bitrate=bitrate)
+
+    @staticmethod
+    def __get_filename_with_extension(filename):
+        return glob.glob(filename + '.*')[0]
 
     def __write_record_info(self, record):
         record_date = datetime.datetime.now()
