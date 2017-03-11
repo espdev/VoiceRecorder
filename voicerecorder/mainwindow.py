@@ -131,8 +131,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__on_update_duration_time()
 
     def __save_record(self):
-        record_info = self.__records_manager.save_record(
-            self.__audio_recorder.get_record())
+        try:
+            record_info = self.__records_manager.save_record(
+                self.__audio_recorder.get_record())
+        except Exception as err:
+            QtWidgets.QMessageBox.critical(
+                self, 'Unable to save record', f'{err}')
+            return
 
         self.__add_record_info_to_table(0, record_info)
 
