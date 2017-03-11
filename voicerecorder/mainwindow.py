@@ -5,6 +5,8 @@
 
 import os
 import datetime
+import functools
+import itertools
 
 from PyQt5 import QtWidgets
 from PyQt5 import QtGui
@@ -51,6 +53,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.pbRecordingStartAndStop.toggled.connect(self.__on_start_stop)
         self.ui.pbRecordingPause.toggled.connect(self.__on_pause)
+        self.ui.pbPlayRecords.clicked.connect(
+            functools.partial(self.__on_play_record, None))
         self.ui.pbRemoveRecords.clicked.connect(self.__remove_selected_records)
 
         self.ui.tableRecords.cellDoubleClicked.connect(self.__on_play_record)
@@ -107,16 +111,28 @@ class MainWindow(QtWidgets.QMainWindow):
             seconds=int(self.__audio_recorder.duration))
         self.ui.labelRecordDuration.setText(str(duration_delta))
 
-    def __on_play_record(self, index):
-        record_info = self.ui.tableRecords.item(index, 0).data(
-            QtCore.Qt.UserRole)
+    def __on_play_record(self, index=None):
+        if index is None:
+            indexes = self.ui.tableRecords.selectedIndexes()
+            rows = self.__selected_rows(indexes)
+            item = self.ui.tableRecords.item(rows[0][0].row(), 0)
+        else:
+            item = self.ui.tableRecords.item(index, 0)
 
-        record_url = QtCore.QUrl(record_info.filename.replace('\\', '/'))
+        record_info = item.data(QtCore.Qt.UserRole)
+
+        filename = recordsmanager.get_filename_with_extension(
+            record_info.filename).replace('\\', '/')
+
+        record_url = QtCore.QUrl(filename)
         QtGui.QDesktopServices.openUrl(record_url)
 
     def __on_change_selected_records(self):
-        is_selected = len(self.ui.tableRecords.selectedItems()) > 0
-        self.ui.pbRemoveRecords.setEnabled(is_selected)
+        selected_rows_count = len(self.__selected_rows(
+            self.ui.tableRecords.selectedIndexes()))
+
+        self.ui.pbRemoveRecords.setEnabled(selected_rows_count > 0)
+        self.ui.pbPlayRecords.setEnabled(selected_rows_count == 1)
 
     def __start_recording(self):
         self.__audio_recorder.record()
@@ -193,3 +209,6 @@ class MainWindow(QtWidgets.QMainWindow):
             row = self.ui.tableRecords.row(item)
             self.__records_manager.remove_record(record_info)
             self.ui.tableRecords.removeRow(row)
+
+    def __selected_rows(self, selected_elems):
+        return list(itertools.zip_longest(*([iter(selected_elems)] * 2)))

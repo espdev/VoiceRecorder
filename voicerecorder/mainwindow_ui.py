@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.7.1
+# Created by: PyQt5 UI code generator 5.8.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(465, 504)
+        MainWindow.resize(521, 504)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -52,6 +52,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.tableRecords)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.pbPlayRecords = QtWidgets.QPushButton(self.gboxRecords)
+        self.pbPlayRecords.setEnabled(False)
+        self.pbPlayRecords.setObjectName("pbPlayRecords")
+        self.verticalLayout_2.addWidget(self.pbPlayRecords)
         self.pbRemoveRecords = QtWidgets.QPushButton(self.gboxRecords)
         self.pbRemoveRecords.setEnabled(False)
         self.pbRemoveRecords.setObjectName("pbRemoveRecords")
@@ -62,7 +66,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.gboxRecords)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 465, 31))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 521, 31))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -84,5 +88,6 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "Date"))
         item = self.tableRecords.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Duration"))
+        self.pbPlayRecords.setText(_translate("MainWindow", "Play"))
         self.pbRemoveRecords.setText(_translate("MainWindow", "Remove"))
 

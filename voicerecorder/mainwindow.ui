@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>465</width>
+    <width>521</width>
     <height>504</height>
    </rect>
   </property>
@@ -107,6 +107,16 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <item>
+          <widget class="QPushButton" name="pbPlayRecords">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Play</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="pbRemoveRecords">
            <property name="enabled">
             <bool>false</bool>
@@ -141,7 +151,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>465</width>
+     <width>521</width>
      <height>31</height>
     </rect>
    </property>
