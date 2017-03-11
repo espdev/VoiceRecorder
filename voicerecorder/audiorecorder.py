@@ -16,9 +16,9 @@ AudioRecord = collections.namedtuple(
         'count_frames',
         'format',
         'channels',
-        'rate',
+        'frame_rate',
         'frames_per_buffer',
-        'sample_size',
+        'sample_width',
     ))
 
 
@@ -117,9 +117,9 @@ class AudioRecorder(QtCore.QObject):
             count_frames=self.count_frames,
             format=self.__format,
             channels=self.__channels,
-            rate=self.__rate,
+            frame_rate=self.__rate,
             frames_per_buffer=self.__frames_per_buffer,
-            sample_size=self.sample_size,
+            sample_width=self.sample_size,
         )
 
     def __record_callback(self, data: bytes, frame_count, time_info, status):

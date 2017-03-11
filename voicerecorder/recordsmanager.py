@@ -4,12 +4,15 @@
 """
 
 import os
+import glob
 import datetime
 import collections
 import wave
 import typing
 
 from PyQt5 import QtCore
+
+import pydub
 
 from . import helperutils
 from . import audiorecorder
@@ -76,7 +79,9 @@ class RecordsManager(QtCore.QObject):
     def remove_record(self, record_info: RecordInfo):
         record_group = record_info.date.strftime(DATETIME_FORMAT)
 
-        os.remove(record_info.filename)
+        filename = glob.glob(record_info.filename + '.*')[0]
+
+        os.remove(filename)
         self.__records_info.remove(record_group)
 
     def read_settings(self, settings: QtCore.QSettings):
@@ -91,21 +96,33 @@ class RecordsManager(QtCore.QObject):
 
     @staticmethod
     def __write_wav(filename, record):
-        with wave.open(filename, 'wb') as wf:
+        with wave.open(filename + '.wav', 'wb') as wf:
             wf.setnchannels(record.channels)
-            wf.setsampwidth(record.sample_size)
-            wf.setframerate(record.rate)
+            wf.setsampwidth(record.sample_width)
+            wf.setframerate(record.frame_rate)
             wf.writeframes(record.data)
+
+    @staticmethod
+    def __write_ogg(filename, record, bitrate='192k'):
+        sound = pydub.AudioSegment(
+            data=record.data,
+            sample_width=record.sample_width,
+            frame_rate=record.frame_rate,
+            channels=record.channels,
+        )
+
+        sound.export(filename + '.ogg', format='ogg', bitrate=bitrate)
 
     def __write_record_info(self, record):
         record_date = datetime.datetime.now()
         record_date_str = record_date.strftime(f'{DATETIME_FORMAT}')
 
-        record_file_name = f'voice-{record_date_str}.wav'
+        record_file_name = f'voice-{record_date_str}'
         record_file_path = os.path.join(self.__records_dir, record_file_name)
 
         # TODO: use OGG/Vorbis audio format
-        self.__write_wav(record_file_path, record)
+        # self.__write_wav(record_file_path, record)
+        self.__write_ogg(record_file_path, record)
 
         with helperutils.qsettings_group(self.__records_info)(record_date_str):
             self.__records_info.setValue('FileName', record_file_path)
