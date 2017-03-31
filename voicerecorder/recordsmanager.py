@@ -5,7 +5,6 @@
 
 import os
 import datetime
-import shutil
 
 from PyQt5 import QtCore
 import pydub
@@ -50,13 +49,13 @@ class RecordsManager(QtCore.QObject):
 
             with settings_group(record):
                 filename = self.__records_info.value('FileName')
-                duration = self.__records_info.value('Duration', type=float)
+                duration = self.__records_info.value('Duration', type=int)
 
             if os.path.exists(helperutils.get_filename_with_extension(filename)):
                 records_info.append({
                     'filename': filename,
                     'date': date,
-                    'duration': datetime.timedelta(seconds=duration),
+                    'duration': duration,
                 })
             else:
                 self.__records_info.remove(record)
@@ -100,12 +99,11 @@ class RecordsManager(QtCore.QObject):
             self.__records_info.setValue('Duration', record_info['duration'])
 
         date = datetime.datetime.strptime(record_date_str, DATETIME_FORMAT)
-        duration = datetime.timedelta(seconds=record_info['duration'])
 
         return {
             'filename': record_file_path,
             'date': date,
-            'duration': duration,
+            'duration': record_info['duration'],
         }
 
     @staticmethod

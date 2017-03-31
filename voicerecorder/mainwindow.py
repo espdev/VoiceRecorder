@@ -150,7 +150,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__audio_recorder.record()
 
     def __stop_recording(self):
-        duration = self.__audio_recorder.duration() / 1000
+        duration = self.__audio_recorder.duration()
 
         self.__audio_recorder.stop()
         self.__save_record({
@@ -224,7 +224,8 @@ class MainWindow(QtWidgets.QMainWindow):
             record_info['date'].strftime(self.RECORD_DATETIME_FORMAT))
         date_item.setData(QtCore.Qt.UserRole, record_info)
 
-        dur_item = QtWidgets.QTableWidgetItem(str(record_info['duration']))
+        dur_item = QtWidgets.QTableWidgetItem(
+            helperutils.format_duration(record_info['duration']))
         dur_item.setTextAlignment(QtCore.Qt.AlignCenter)
 
         self.ui.tableRecords.setItem(index, 0, date_item)
