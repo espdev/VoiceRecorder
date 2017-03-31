@@ -5,8 +5,21 @@
 
 import sys
 import contextlib
+import datetime
+import glob
 
 from PyQt5 import QtCore
+
+
+def format_duration(duration):
+    duration_delta = datetime.timedelta(milliseconds=duration)
+
+    mm, ss = divmod(duration_delta.seconds, 60)
+    hh, mm = divmod(mm, 60)
+
+    s = "%d:%02d:%02d" % (hh, mm, ss)
+
+    return s
 
 
 def set_exception_hook():
@@ -35,3 +48,11 @@ def qsettings_group(settings: QtCore.QSettings):
         yield
         settings.endGroup()
     return qsettings_group_context
+
+
+def get_filename_with_extension(filename):
+    f = glob.glob(filename + '.*')
+    if f:
+        return f[0]
+    else:
+        return ''

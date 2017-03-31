@@ -4,32 +4,18 @@
 """
 
 import os
-import glob
 import datetime
-import collections
-import wave
-import typing
+import shutil
 
 from PyQt5 import QtCore
-
 import pydub
 
 from . import helperutils
-from . import audiorecorder
 from . import __app_name__
 
 
 RECORDS_INFO_FILENAME = 'Records.ini'
 DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
-
-
-RecordInfo = collections.namedtuple(
-    'RecordInfo', ('filename', 'date', 'duration'))
-RecordInfoList = typing.List[RecordInfo]
-
-
-def get_filename_with_extension(filename):
-    return glob.glob(filename + '.*')[0]
 
 
 class RecordsManager(QtCore.QObject):
@@ -49,13 +35,13 @@ class RecordsManager(QtCore.QObject):
             os.path.join(helperutils.get_documents_dir(), __app_name__))
         self.__records_dir = self.__default_records_dir
 
-    def save_record(self, record: audiorecorder.AudioRecord):
+    def save_record(self, record_info: dict):
         if not os.path.exists(self.__records_dir):
             os.makedirs(self.__records_dir)
 
-        return self.__write_record_info(record)
+        return self.__write_record_info(record_info)
 
-    def get_records_info(self) -> RecordInfoList:
+    def get_records_info(self):
         records_info = []
         settings_group = helperutils.qsettings_group(self.__records_info)
 
@@ -66,24 +52,27 @@ class RecordsManager(QtCore.QObject):
                 filename = self.__records_info.value('FileName')
                 duration = self.__records_info.value('Duration', type=float)
 
-            if os.path.exists(get_filename_with_extension(filename)):
-                records_info.append(RecordInfo(
-                    filename=filename,
-                    date=date,
-                    duration=datetime.timedelta(seconds=int(duration)),
-                ))
+            if os.path.exists(helperutils.get_filename_with_extension(filename)):
+                records_info.append({
+                    'filename': filename,
+                    'date': date,
+                    'duration': datetime.timedelta(seconds=duration),
+                })
             else:
                 self.__records_info.remove(record)
 
-        records_info.sort(key=lambda x: x.date)
+        records_info.sort(key=lambda x: x['date'])
         records_info.reverse()
 
         return records_info
 
-    def remove_record(self, record_info: RecordInfo):
-        record_group = record_info.date.strftime(DATETIME_FORMAT)
+    def remove_record(self, record_info: dict):
+        record_group = record_info['date'].strftime(DATETIME_FORMAT)
 
-        os.remove(get_filename_with_extension(record_info.filename))
+        fname = helperutils.get_filename_with_extension(record_info['filename'])
+        if os.path.exists(fname):
+            os.remove(fname)
+
         self.__records_info.remove(record_group)
 
     def read_settings(self, settings: QtCore.QSettings):
@@ -96,45 +85,30 @@ class RecordsManager(QtCore.QObject):
             if not settings.contains('RecordsDirectory'):
                 settings.setValue('RecordsDirectory', self.__records_dir)
 
-    @staticmethod
-    def __write_wav(filename, record):
-        with wave.open(filename + '.wav', 'wb') as wf:
-            wf.setnchannels(record.channels)
-            wf.setsampwidth(record.sample_width)
-            wf.setframerate(record.frame_rate)
-            wf.writeframes(record.data)
-
-    @staticmethod
-    def __write_ogg(filename, record, bitrate='192k'):
-        sound = pydub.AudioSegment(
-            data=record.data,
-            sample_width=record.sample_width,
-            frame_rate=record.frame_rate,
-            channels=record.channels,
-        )
-
-        sound.export(filename + '.ogg', format='ogg', bitrate=bitrate)
-
-    def __write_record_info(self, record):
+    def __write_record_info(self, record_info):
         record_date = datetime.datetime.now()
         record_date_str = record_date.strftime(f'{DATETIME_FORMAT}')
 
         record_file_name = f'voice-{record_date_str}'
         record_file_path = os.path.join(self.__records_dir, record_file_name)
 
-        # TODO: use OGG/Vorbis audio format
-        # self.__write_wav(record_file_path, record)
-        self.__write_ogg(record_file_path, record)
+        self.__write_ogg(record_info['filename'], record_file_path)
+        os.remove(record_info['filename'])
 
         with helperutils.qsettings_group(self.__records_info)(record_date_str):
             self.__records_info.setValue('FileName', record_file_path)
-            self.__records_info.setValue('Duration', record.duration)
+            self.__records_info.setValue('Duration', record_info['duration'])
 
         date = datetime.datetime.strptime(record_date_str, DATETIME_FORMAT)
-        duration = datetime.timedelta(seconds=int(record.duration))
+        duration = datetime.timedelta(seconds=record_info['duration'])
 
-        return RecordInfo(
-            filename=record_file_path,
-            date=date,
-            duration=duration,
-        )
+        return {
+            'filename': record_file_path,
+            'date': date,
+            'duration': duration,
+        }
+
+    @staticmethod
+    def __write_ogg(wavfname, oggfname, bitrate='192k'):
+        sound = pydub.AudioSegment.from_file(wavfname)
+        sound.export(oggfname + '.ogg', format='ogg', bitrate=bitrate)

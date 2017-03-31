@@ -11,7 +11,7 @@ if sys.platform == 'win32':
 
 options = {
     'build_exe': {
-        'includes': 'atexit',
+        'includes': ['atexit', 'PyQt5.QtNetwork'],
         'zip_include_packages': '*',
         'zip_exclude_packages': None,
     }
@@ -26,5 +26,5 @@ setup(
     version=__version__,
     description='VoiceRecorder is a simple application for voice record',
     options=options,
-    executables=executables
+    executables=executables,
 )

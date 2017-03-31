@@ -4,16 +4,16 @@
 """
 
 import os
-import datetime
 import functools
 import itertools
+import tempfile
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
 from PyQt5 import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtWidgets
+from PyQt5 import QtMultimedia
 
 from . import mainwindow_ui
-from . import audiorecorder
 from . import recordsmanager
 from . import helperutils
 
@@ -48,7 +48,9 @@ class MainWindow(QtWidgets.QMainWindow):
             settings_fname, QtCore.QSettings.IniFormat, self)
         self.__settings_group = helperutils.qsettings_group(self.__settings)
 
-        self.__audio_recorder = audiorecorder.AudioRecorder(parent=self)
+        self.__tmp_audio_fname = ''
+
+        self.__audio_recorder = QtMultimedia.QAudioRecorder(self)
         self.__records_manager = recordsmanager.RecordsManager(parent=self)
 
         self.ui.pbRecordingStartAndStop.toggled.connect(self.__on_start_stop)
@@ -62,9 +64,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.__on_change_selected_records)
         self.ui.tableRecords.installEventFilter(self)
 
-        self.__audio_recorder.record_updated.connect(
+        self.__audio_recorder.durationChanged.connect(
             self.__on_update_duration_time)
 
+        self.__collect_info_about_audioinputs()
+        self.__setup_audiorecorder()
         self.__read_settings()
         self.__update_records_info()
 
@@ -94,6 +98,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.ui.pbRecordingStartAndStop.setText(pb_title_text[is_checked])
         self.ui.labelRecordDuration.setVisible(is_checked)
+        self.ui.cmboxAudioInput.setEnabled(not is_checked)
 
         if is_checked:
             self.__start_recording()
@@ -102,14 +107,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __on_pause(self, is_checked):
         if is_checked:
-            self.__pause_recording()
+            self.__audio_recorder.pause()
         else:
-            self.__start_recording()
+            self.__audio_recorder.record()
 
-    def __on_update_duration_time(self):
-        duration_delta = datetime.timedelta(
-            seconds=int(self.__audio_recorder.duration))
-        self.ui.labelRecordDuration.setText(str(duration_delta))
+    def __on_update_duration_time(self, duration):
+        self.ui.labelRecordDuration.setText(
+            helperutils.format_duration(duration))
 
     def __on_play_record(self, index=None):
         if index is None:
@@ -121,8 +125,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         record_info = item.data(QtCore.Qt.UserRole)
 
-        filename = recordsmanager.get_filename_with_extension(
-            record_info.filename).replace('\\', '/')
+        filename = helperutils.get_filename_with_extension(
+            record_info['filename']).replace('\\', '/')
 
         record_url = QtCore.QUrl(filename)
         QtGui.QDesktopServices.openUrl(record_url)
@@ -135,27 +139,56 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pbPlayRecords.setEnabled(selected_rows_count == 1)
 
     def __start_recording(self):
+        self.__tmp_audio_fname = tempfile.mktemp(
+            dir=helperutils.get_app_config_dir(), suffix='.wav')
+
+        self.__audio_recorder.setAudioInput(
+            self.ui.cmboxAudioInput.currentData(QtCore.Qt.UserRole))
+        self.__audio_recorder.setOutputLocation(
+            QtCore.QUrl.fromLocalFile(self.__tmp_audio_fname))
+
         self.__audio_recorder.record()
 
-    def __pause_recording(self):
-        self.__audio_recorder.stop()
-
     def __stop_recording(self):
-        self.__audio_recorder.stop()
-        self.__save_record()
-        self.__audio_recorder.clear()
-        self.__on_update_duration_time()
+        duration = self.__audio_recorder.duration() / 1000
 
-    def __save_record(self):
+        self.__audio_recorder.stop()
+        self.__save_record({
+            'filename': self.__tmp_audio_fname,
+            'duration': duration,
+        })
+        self.__on_update_duration_time(0)
+
+    def __save_record(self, record_info):
         try:
-            record_info = self.__records_manager.save_record(
-                self.__audio_recorder.get_record())
+            record_info = self.__records_manager.save_record(record_info)
         except Exception as err:
             QtWidgets.QMessageBox.critical(
                 self, 'Unable to save record', f'{err}')
             return
 
         self.__add_record_info_to_table(0, record_info)
+
+    def __collect_info_about_audioinputs(self):
+        self.ui.cmboxAudioInput.addItem('Default', '')
+
+        ainputs = self.__audio_recorder.audioInputs()
+        for ainput in ainputs:
+            self.ui.cmboxAudioInput.addItem(ainput, ainput)
+
+    def __setup_audiorecorder(self):
+        settings = QtMultimedia.QAudioEncoderSettings()
+
+        settings.setCodec('')
+        settings.setSampleRate(48000)
+        settings.setBitRate(128000)
+        settings.setChannelCount(2)
+        settings.setQuality(QtMultimedia.QMultimedia.HighQuality)
+        settings.setEncodingMode(
+            QtMultimedia.QMultimedia.ConstantQualityEncoding)
+
+        self.__audio_recorder.setEncodingSettings(
+            settings, QtMultimedia.QVideoEncoderSettings(), '')
 
     def __read_settings(self):
         with self.__settings_group('UI'):
@@ -164,6 +197,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.restoreState(self.__settings.value(
                 'WindowState', self.saveState()))
 
+        with self.__settings_group('Audio'):
+            ainput = self.__settings.value('Input', 'Default')
+            index = self.ui.cmboxAudioInput.findText(ainput)
+
+            if index != -1:
+                self.ui.cmboxAudioInput.setCurrentIndex(index)
+
         self.__records_manager.read_settings(self.__settings)
 
     def __write_settings(self):
@@ -171,16 +211,20 @@ class MainWindow(QtWidgets.QMainWindow):
             self.__settings.setValue('WindowGeometry', self.saveGeometry())
             self.__settings.setValue('WindowState', self.saveState())
 
+        with self.__settings_group('Audio'):
+            self.__settings.setValue(
+                'Input', self.ui.cmboxAudioInput.currentText())
+
         self.__records_manager.write_settings(self.__settings)
 
     def __add_record_info_to_table(self, index, record_info):
         self.ui.tableRecords.insertRow(index)
 
         date_item = QtWidgets.QTableWidgetItem(
-            record_info.date.strftime(self.RECORD_DATETIME_FORMAT))
+            record_info['date'].strftime(self.RECORD_DATETIME_FORMAT))
         date_item.setData(QtCore.Qt.UserRole, record_info)
 
-        dur_item = QtWidgets.QTableWidgetItem(str(record_info.duration))
+        dur_item = QtWidgets.QTableWidgetItem(str(record_info['duration']))
         dur_item.setTextAlignment(QtCore.Qt.AlignCenter)
 
         self.ui.tableRecords.setItem(index, 0, date_item)
