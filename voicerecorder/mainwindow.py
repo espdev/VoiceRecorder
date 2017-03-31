@@ -160,12 +160,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__on_update_duration_time(0)
 
     def __save_record(self, record_info):
+        QtWidgets.QApplication.setOverrideCursor(
+            QtGui.QCursor(QtCore.Qt.WaitCursor))
+
         try:
             record_info = self.__records_manager.save_record(record_info)
         except Exception as err:
             QtWidgets.QMessageBox.critical(
                 self, 'Unable to save record', f'{err}')
             return
+        finally:
+            QtWidgets.QApplication.restoreOverrideCursor()
 
         self.__add_record_info_to_table(0, record_info)
 
