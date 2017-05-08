@@ -64,7 +64,7 @@ class AudioBufferProcessor(QtCore.QObject):
 
         }.get((sample_type, sample_size))
 
-        if buffer_type is None:
+        if not buffer_type:
             raise TypeError('Unknown buffer type {}'.format(sample_type))
 
         buffer_bytes = buffer.constData().asarray(buffer.byteCount())
