@@ -41,6 +41,7 @@ class MainWindow(QtWidgets.QMainWindow):
             levmon.setVisible(False)
             levmon.setMinimumWidth(50)
             levmon.setMaximumWidth(250)
+            levmon.setFrameStyle(QtWidgets.QFrame.StyledPanel)
 
             self.__ui.layoutAudioLevels.addWidget(levmon)
 
