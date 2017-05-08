@@ -31,8 +31,6 @@ class RecordingStatusBarInfo(QtWidgets.QWidget):
         super().__init__(parent, *args, **kwargs)
 
         status_icon = QtWidgets.QLabel()
-        status_text = QtWidgets.QLabel()
-
         status_icon.setPixmap(QtGui.QPixmap(':icons/rec'))
 
         self._status_icon_opacity = QtWidgets.QGraphicsOpacityEffect(status_icon)
@@ -40,6 +38,7 @@ class RecordingStatusBarInfo(QtWidgets.QWidget):
 
         status_icon.setGraphicsEffect(self._status_icon_opacity)
 
+        status_text = QtWidgets.QLabel()
         status_text.setText(self.tr('Recording...'))
 
         self._animation_timer = QtCore.QTimer(self)
