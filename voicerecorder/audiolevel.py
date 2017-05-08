@@ -174,10 +174,11 @@ class AudioLevelMonitor(QtWidgets.QFrame):
     def paintEvent(self, event: QtGui.QPaintEvent):
         width_level = self._level * self.width()
         windows_color = QtGui.QPalette().window()
+        indicator_color = QtGui.QColor(135, 211, 255)
 
         p = QtGui.QPainter(self)
 
-        p.fillRect(0, 0, width_level, self.height(), QtCore.Qt.green)
+        p.fillRect(0, 0, width_level, self.height(), indicator_color)
         p.fillRect(width_level, 0, self.width(), self.height(), windows_color)
 
         self.drawFrame(p)
