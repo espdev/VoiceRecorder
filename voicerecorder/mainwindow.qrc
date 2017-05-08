@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="icons">
+    <file alias="mic">icons/mic.png</file>
+    <file alias="rec">icons/rec.png</file>
+    <file alias="stop">icons/stop.png</file>
+    <file alias="record">icons/record.png</file>
+    <file alias="pause">icons/pause.png</file>
+  </qresource>
+</RCC>
