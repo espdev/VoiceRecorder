@@ -62,7 +62,7 @@ class AudioBufferProcessor(QtCore.QObject):
             # Float type
             (QtMultimedia.QAudioFormat.Float, 32): 'f',
 
-        }.get((sample_type, sample_size), None)
+        }.get((sample_type, sample_size))
 
         if buffer_type is None:
             raise TypeError('Unknown buffer type {}'.format(sample_type))
