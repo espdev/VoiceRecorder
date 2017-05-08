@@ -136,7 +136,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__audio_recorder.durationChanged.connect(
             self.__on_update_duration_time)
 
-        self.__collect_info_about_audioinputs()
+        self.__collect_audioinputs()
         self.__setup_audiorecorder()
         self.__read_settings()
         self.__update_records_info()
@@ -260,7 +260,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.__add_record_info_to_table(0, record_info)
 
-    def __collect_info_about_audioinputs(self):
+    def __collect_audioinputs(self):
         self.ui.cmboxAudioInput.addItem('Default', '')
 
         ainputs = self.__audio_recorder.audioInputs()
