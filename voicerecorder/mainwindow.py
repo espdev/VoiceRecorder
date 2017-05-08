@@ -73,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__(parent, *args, **kwargs)
 
         self.__ui = mainwindow_ui.Ui_MainWindow()
-        self.__ui.setupUi(self)
+        self.ui.setupUi(self)
 
         self.__level_monitors = [
             audiolevel.AudioLevelMonitor(),
@@ -86,7 +86,7 @@ class MainWindow(QtWidgets.QMainWindow):
             levmon.setMaximumWidth(250)
             levmon.setFrameStyle(QtWidgets.QFrame.StyledPanel)
 
-            self.__ui.layoutAudioLevels.addWidget(levmon)
+            self.ui.layoutAudioLevels.addWidget(levmon)
 
         self.__recording_statusbar_info = RecordingStatusBarInfo()
         self.__recording_statusbar_info.setVisible(False)
@@ -227,7 +227,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__audio_recorder.record()
 
         self.__recording_statusbar_info.setVisible(True)
-        self.__ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/stop'))
+        self.ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/stop'))
 
     def __stop_recording(self):
         duration = self.__audio_recorder.duration()
@@ -244,7 +244,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for levmon in self.__level_monitors:
             levmon.setVisible(False)
 
-        self.__ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/record'))
+        self.ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/record'))
 
     def __save_record(self, record_info):
         QtWidgets.QApplication.setOverrideCursor(
