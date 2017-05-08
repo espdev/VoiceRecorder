@@ -49,12 +49,12 @@ class AudioBufferProcessor(QtCore.QObject):
         sample_size = buffer_format.sampleSize()
 
         buffer_type = {
-            # Signed integer type
+            # Unsigned integer type
             (QtMultimedia.QAudioFormat.UnSignedInt, 8): 'B',
             (QtMultimedia.QAudioFormat.UnSignedInt, 16): 'H',
             (QtMultimedia.QAudioFormat.UnSignedInt, 32): 'I',
 
-            # Unsigned integer type
+            # Signed integer type
             (QtMultimedia.QAudioFormat.SignedInt, 8): 'b',
             (QtMultimedia.QAudioFormat.SignedInt, 16): 'h',
             (QtMultimedia.QAudioFormat.SignedInt, 32): 'i',
