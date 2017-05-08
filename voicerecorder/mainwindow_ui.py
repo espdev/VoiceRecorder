@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.8.1
+# Created by: PyQt5 UI code generator 5.8.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -44,8 +44,15 @@ class Ui_MainWindow(object):
         self.labelRecordDuration = QtWidgets.QLabel(self.centralwidget)
         self.labelRecordDuration.setObjectName("labelRecordDuration")
         self.horizontalLayout.addWidget(self.labelRecordDuration)
-        spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem2 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem2)
+        self.layoutAudioLevels = QtWidgets.QVBoxLayout()
+        self.layoutAudioLevels.setSpacing(3)
+        self.layoutAudioLevels.setObjectName("layoutAudioLevels")
+        self.horizontalLayout.addLayout(self.layoutAudioLevels)
+        spacerItem3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem3)
+        self.horizontalLayout.setStretch(5, 1)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.gboxRecords = QtWidgets.QGroupBox(self.centralwidget)
         self.gboxRecords.setObjectName("gboxRecords")
@@ -72,8 +79,8 @@ class Ui_MainWindow(object):
         self.pbRemoveRecords.setEnabled(False)
         self.pbRemoveRecords.setObjectName("pbRemoveRecords")
         self.verticalLayout_2.addWidget(self.pbRemoveRecords)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem3)
+        spacerItem4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem4)
         self.horizontalLayout_2.addLayout(self.verticalLayout_2)
         self.verticalLayout.addWidget(self.gboxRecords)
         MainWindow.setCentralWidget(self.centralwidget)

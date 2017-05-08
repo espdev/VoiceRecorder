@@ -14,6 +14,7 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtMultimedia
 
 from . import mainwindow_ui
+from . import audiolevel
 from . import recordsmanager
 from . import helperutils
 
@@ -30,6 +31,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.__ui = mainwindow_ui.Ui_MainWindow()
         self.__ui.setupUi(self)
+
+        self.__level_monitors = [
+            audiolevel.AudioLevelMonitor(),
+            audiolevel.AudioLevelMonitor(),
+        ]
+
+        for levmon in self.__level_monitors:
+            levmon.setVisible(False)
+            levmon.setMinimumWidth(50)
+            levmon.setMaximumWidth(250)
+
+            self.__ui.layoutAudioLevels.addWidget(levmon)
 
         self.setWindowTitle(f'{__app_name__} - {__version__}')
         self.ui.labelRecordDuration.setVisible(False)
@@ -51,6 +64,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__tmp_audio_fname = ''
 
         self.__audio_recorder = QtMultimedia.QAudioRecorder(self)
+
+        self.__audio_levels_calculator = audiolevel.AudioLevelsCalculator(
+            self, self.__audio_recorder)
+        self.__audio_levels_calculator.levels_calculated.connect(
+            self.__on_show_audio_levels)
+
         self.__records_manager = recordsmanager.RecordsManager(parent=self)
 
         self.ui.pbRecordingStartAndStop.toggled.connect(self.__on_start_stop)
@@ -89,6 +108,10 @@ class MainWindow(QtWidgets.QMainWindow):
     @property
     def ui(self):
         return self.__ui
+
+    def __on_show_audio_levels(self, levels: list):
+        for mon, level in zip(self.__level_monitors, levels):
+            mon.set_level(level)
 
     def __on_start_stop(self, is_checked):
         pb_title_text = {
@@ -147,9 +170,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__audio_recorder.setOutputLocation(
             QtCore.QUrl.fromLocalFile(self.__tmp_audio_fname))
 
+        for levmon in self.__level_monitors:
+            levmon.setVisible(True)
+
         self.__audio_recorder.record()
 
     def __stop_recording(self):
+        for levmon in self.__level_monitors:
+            levmon.setVisible(False)
+
         duration = self.__audio_recorder.duration()
 
         self.__audio_recorder.stop()
