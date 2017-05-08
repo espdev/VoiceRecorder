@@ -167,7 +167,9 @@ class AudioLevelMonitor(QtWidgets.QFrame):
         self.update()
 
     def sizeHint(self):
-        return QtCore.QSize(100, 12)
+        btn = QtWidgets.QPushButton()
+        h = btn.sizeHint().height() / 2.6
+        return QtCore.QSize(100, h)
 
     def paintEvent(self, event: QtGui.QPaintEvent):
         width_level = self._level * self.width()
