@@ -149,11 +149,12 @@ class MainWindow(QtWidgets.QMainWindow):
             return False
         if event.type() != QtCore.QEvent.KeyPress:
             return False
-        if event.key() != QtCore.Qt.Key_Delete:
-            return False
 
-        self.__remove_selected_records()
-        return True
+        if event.key() == QtCore.Qt.Key_Delete:
+            self.__remove_selected_records()
+            return True
+
+        return False
 
     @property
     def ui(self):
