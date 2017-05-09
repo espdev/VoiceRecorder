@@ -6,6 +6,7 @@ from cx_Freeze import setup, Executable
 from voicerecorder import __version__
 
 base = None
+
 if sys.platform == 'win32':
     base = 'Win32GUI'
 
@@ -24,7 +25,7 @@ executables = [
 setup(
     name='VoiceRecorder',
     version=__version__,
-    description='VoiceRecorder is a simple application for voice record',
+    description='VoiceRecorder is a simple application for voice/audio record',
     options=options,
     executables=executables,
 )
