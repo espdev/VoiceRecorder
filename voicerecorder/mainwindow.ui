@@ -188,6 +188,10 @@
            <property name="text">
             <string>Play</string>
            </property>
+           <property name="icon">
+            <iconset resource="mainwindow.qrc">
+             <normaloff>:/icons/play</normaloff>:/icons/play</iconset>
+           </property>
           </widget>
          </item>
          <item>
@@ -197,6 +201,10 @@
            </property>
            <property name="text">
             <string>Remove</string>
+           </property>
+           <property name="icon">
+            <iconset resource="mainwindow.qrc">
+             <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
            </property>
           </widget>
          </item>
