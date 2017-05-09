@@ -65,7 +65,7 @@ class AudioBufferProcessor(QtCore.QObject):
         }.get((sample_type, sample_size))
 
         if not buffer_type:
-            raise TypeError('Unknown buffer type {}'.format(sample_type))
+            raise TypeError(f'Unknown buffer type {(sample_type, sample_size)}')
 
         buffer_bytes = buffer.constData().asarray(buffer.byteCount())
 
@@ -135,7 +135,7 @@ class AudioLevelsCalculator(QtCore.QObject):
                 _peak_value = 1.00003
                 _calc_level = calc_level_other
             else:
-                raise TypeError('Unsupported data type {}'.format(arr_data_type))
+                raise TypeError(f'Unsupported data type {arr_data_type}')
 
             max_value = max(map(abs, arr_data.tolist()))
             return _calc_level(max_value, _peak_value)
