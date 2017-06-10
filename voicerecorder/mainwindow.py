@@ -3,86 +3,29 @@
 """
 """
 
-import os
 import functools
 import itertools
+import os
 import tempfile
-import math
 
 from PyQt5 import QtCore
 from PyQt5 import QtGui
-from PyQt5 import QtWidgets
 from PyQt5 import QtMultimedia
-
-from . import mainwindow_ui
-from . import mainwindow_rc
-
-from . import audiolevel
-from . import recordsmanager
-from . import helperutils
+from PyQt5 import QtWidgets
 
 from . import __app_name__
 from . import __version__
 
-
-class RecordingStatusInfo(QtWidgets.QWidget):
-    """
-    """
-
-    def __init__(self, parent=None, *args, **kwargs):
-        super().__init__(parent, *args, **kwargs)
-
-        self._status_icon = QtWidgets.QLabel()
-        self._status_icon.setPixmap(QtGui.QPixmap(':icons/rec'))
-
-        self._status_icon_opacity = QtWidgets.QGraphicsOpacityEffect(
-            self._status_icon)
-        self._status_icon_opacity.setOpacity(1.0)
-
-        self._status_icon.setGraphicsEffect(self._status_icon_opacity)
-
-        self._status_text = QtWidgets.QLabel()
-
-        self._animation_timer = QtCore.QTimer(self)
-        self._animation_timer.setInterval(50)
-        self._animation_timer.timeout.connect(self._animate_record_icon)
-
-        self._opacity_dec = 0.1
-
-        self._layout = QtWidgets.QHBoxLayout()
-        self._layout.addWidget(self._status_icon)
-        self._layout.addWidget(self._status_text)
-        self._layout.setContentsMargins(9, 0, 9, 0)
-
-        self.setLayout(self._layout)
-
-    def set_record_status(self):
-        self._status_text.setText(self.tr('Recording'))
-        self._opacity_dec = abs(self._opacity_dec)
-        self._animation_timer.start()
-        self.setVisible(True)
-
-    def set_pause_status(self):
-        self._status_text.setText(self.tr('Paused'))
-        self._animation_timer.stop()
-        self._status_icon_opacity.setOpacity(0.5)
-        self.setVisible(True)
-
-    def set_stop_status(self):
-        self._animation_timer.stop()
-        self.setVisible(False)
-
-    def _animate_record_icon(self):
-        opacity = round(
-            self._status_icon_opacity.opacity() - self._opacity_dec, 2)
-
-        if math.isclose(opacity, 0.0) or math.isclose(opacity, 1.0):
-            self._opacity_dec = -self._opacity_dec
-
-        self._status_icon_opacity.setOpacity(opacity)
+from . import statusinfo
+from . import audiolevel
+from . import helperutils
+from . import mainwindow_ui
+from . import recordsmanager
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """Application MainWindow class
+    """
 
     RECORD_DATETIME_FORMAT = '%d.%m.%Y %H:%M:%S'
 
@@ -105,7 +48,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.layoutAudioLevels.addWidget(levmon)
 
-        self.__recording_status_info = RecordingStatusInfo()
+        self.__recording_status_info = statusinfo.StatusInfo()
         self.__recording_status_info.set_stop_status()
 
         status_bar: QtWidgets.QStatusBar = self.statusBar()
@@ -152,6 +95,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.__audio_recorder.durationChanged.connect(
             self.__on_update_duration_time)
+
+        self.__records_manager.encode_progress.connect(
+            self.__recording_status_info.set_encoding_progress)
 
         self.__collect_audioinputs()
         self.__setup_audiorecorder()
@@ -268,6 +214,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def __save_record(self, record_info):
         QtWidgets.QApplication.setOverrideCursor(
             QtGui.QCursor(QtCore.Qt.WaitCursor))
+
+        self.__recording_status_info.set_encode_status()
 
         try:
             record_info = self.__records_manager.save_record(record_info)

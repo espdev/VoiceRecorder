@@ -11,6 +11,9 @@ import glob
 from PyQt5 import QtCore
 
 
+AV_TIME_BASE = 1000000
+
+
 def format_duration(duration):
     duration_delta = datetime.timedelta(milliseconds=duration)
 
@@ -50,8 +53,8 @@ def qsettings_group(settings: QtCore.QSettings):
     return qsettings_group_context
 
 
-def get_filename_with_extension(filename):
-    f = glob.glob(filename + '.*')
+def get_filename_with_extension(filename, ext='.*'):
+    f = glob.glob(filename + ext)
     if f:
         return f[0]
     else:

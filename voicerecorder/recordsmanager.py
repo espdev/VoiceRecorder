@@ -6,8 +6,10 @@
 import os
 import datetime
 
+import wave
+import av
+
 from PyQt5 import QtCore
-import pydub
 
 from . import helperutils
 from . import __app_name__
@@ -15,11 +17,14 @@ from . import __app_name__
 
 RECORDS_INFO_FILENAME = 'Records.ini'
 DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
+ENCODE_FORMAT = ('libvorbis', '.ogg')
 
 
 class RecordsManager(QtCore.QObject):
     """
     """
+
+    encode_progress = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -91,7 +96,7 @@ class RecordsManager(QtCore.QObject):
         record_file_name = f'voice-{record_date_str}'
         record_file_path = os.path.join(self.__records_dir, record_file_name)
 
-        self.__write_ogg(record_info['filename'], record_file_path)
+        self.__encode(record_info['filename'], record_file_path)
         os.remove(record_info['filename'])
 
         with helperutils.qsettings_group(self.__records_info)(record_date_str):
@@ -106,7 +111,26 @@ class RecordsManager(QtCore.QObject):
             'duration': record_info['duration'],
         }
 
-    @staticmethod
-    def __write_ogg(wavfname, oggfname, bitrate='192k'):
-        sound = pydub.AudioSegment.from_file(wavfname)
-        sound.export(oggfname + '.ogg', format='ogg', bitrate=bitrate)
+    def __encode(self, wavfname, outfname, fmt=ENCODE_FORMAT):
+        inp = av.open(wavfname, 'r')
+        out = av.open(outfname + fmt[1], 'w')
+
+        ostream = out.add_stream(fmt[0])
+
+        with wave.open(wavfname, 'rb') as wav:
+            num_frames = wav.getnframes()
+        num_encoded_frames = 0
+
+        for frame in inp.decode(audio=0):
+            frame.pts = None
+
+            for p in ostream.encode(frame):
+                out.mux(p)
+
+            num_encoded_frames += frame.samples
+            self.encode_progress.emit(int(100 * num_encoded_frames / num_frames))
+
+        for p in ostream.encode(None):
+            out.mux(p)
+
+        out.close()
