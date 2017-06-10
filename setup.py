@@ -12,9 +12,9 @@ if sys.platform == 'win32':
 
 options = {
     'build_exe': {
-        'includes': ['atexit', 'PyQt5.QtNetwork'],
+        'includes': ['atexit', 'PyQt5.QtNetwork', 'fractions'],
         'zip_include_packages': '*',
-        'zip_exclude_packages': None,
+        'zip_exclude_packages': ['av'],
     }
 }
 
