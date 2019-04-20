@@ -3,6 +3,7 @@
 """
 """
 
+import datetime
 import functools
 import itertools
 import os
@@ -277,10 +278,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__records_manager.write_settings(self.__settings)
 
     def __add_record_info_to_table(self, index, record_info):
+        record_date = datetime.datetime.fromtimestamp(record_info['timestamp'])
+
         self.ui.tableRecords.insertRow(index)
 
         date_item = QtWidgets.QTableWidgetItem(
-            record_info['date'].strftime(self.RECORD_DATETIME_FORMAT))
+            record_date.strftime(self.RECORD_DATETIME_FORMAT))
         date_item.setData(QtCore.Qt.UserRole, record_info)
 
         dur_item = QtWidgets.QTableWidgetItem(
