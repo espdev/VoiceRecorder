@@ -5,17 +5,18 @@
 
 import os
 import datetime
-
+import time
 import wave
-import av
 
+import av
+import tinydb
 from PyQt5 import QtCore
 
 from . import helperutils
 from . import __app_name__
 
 
-RECORDS_INFO_FILENAME = 'Records.ini'
+RECORDS_DATABASE_NAME = 'records_db.json'
 DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
 ENCODE_FORMAT = ('libvorbis', '.ogg')
 
@@ -29,15 +30,12 @@ class RecordsManager(QtCore.QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        records_info_fname = os.path.join(
-            helperutils.get_app_config_dir(), RECORDS_INFO_FILENAME)
-
-        self.__records_info = QtCore.QSettings(
-            records_info_fname, QtCore.QSettings.IniFormat, self)
-
         self.__default_records_dir = os.path.normpath(
             os.path.join(helperutils.get_documents_dir(), __app_name__))
         self.__records_dir = self.__default_records_dir
+
+        self._records_db = tinydb.TinyDB(
+            os.path.join(helperutils.get_app_config_dir(), RECORDS_DATABASE_NAME))
 
     def save_record(self, record_info: dict):
         if not os.path.exists(self.__records_dir):
@@ -46,38 +44,33 @@ class RecordsManager(QtCore.QObject):
         return self.__write_record_info(record_info)
 
     def get_records_info(self):
-        records_info = []
-        settings_group = helperutils.qsettings_group(self.__records_info)
+        records = []
+        removed = []
 
-        for record in self.__records_info.childGroups():
-            date = datetime.datetime.strptime(record, DATETIME_FORMAT)
-
-            with settings_group(record):
-                filename = self.__records_info.value('FileName')
-                duration = self.__records_info.value('Duration', type=int)
+        for record in self._records_db:
+            filename = record['filename']
 
             if os.path.exists(helperutils.get_filename_with_extension(filename)):
-                records_info.append({
-                    'filename': filename,
-                    'date': date,
-                    'duration': duration,
-                })
+                records.append(record)
             else:
-                self.__records_info.remove(record)
+                removed.append(record['filename'])
 
-        records_info.sort(key=lambda x: x['date'])
-        records_info.reverse()
+        r = tinydb.Query()
+        self._records_db.remove(r.filename.one_of(removed))
 
-        return records_info
+        records.sort(key=lambda x: x['timestamp'])
+        records.reverse()
+
+        return records
 
     def remove_record(self, record_info: dict):
-        record_group = record_info['date'].strftime(DATETIME_FORMAT)
-
-        fname = helperutils.get_filename_with_extension(record_info['filename'])
+        file_name = record_info['filename']
+        fname = helperutils.get_filename_with_extension(file_name)
         if os.path.exists(fname):
             os.remove(fname)
 
-        self.__records_info.remove(record_group)
+        r = tinydb.Query()
+        self._records_db.remove(r.filename == file_name)
 
     def read_settings(self, settings: QtCore.QSettings):
         with helperutils.qsettings_group(settings)('Path'):
@@ -90,7 +83,8 @@ class RecordsManager(QtCore.QObject):
                 settings.setValue('RecordsDirectory', self.__records_dir)
 
     def __write_record_info(self, record_info):
-        record_date = datetime.datetime.now()
+        record_timestamp = int(time.time())
+        record_date = datetime.datetime.fromtimestamp(record_timestamp)
         record_date_str = record_date.strftime(f'{DATETIME_FORMAT}')
 
         record_file_name = f'voice-{record_date_str}'
@@ -99,17 +93,15 @@ class RecordsManager(QtCore.QObject):
         self.__encode(record_info['filename'], record_file_path)
         os.remove(record_info['filename'])
 
-        with helperutils.qsettings_group(self.__records_info)(record_date_str):
-            self.__records_info.setValue('FileName', record_file_path)
-            self.__records_info.setValue('Duration', record_info['duration'])
-
-        date = datetime.datetime.strptime(record_date_str, DATETIME_FORMAT)
-
-        return {
+        record = {
             'filename': record_file_path,
-            'date': date,
             'duration': record_info['duration'],
+            'timestamp': record_timestamp,
         }
+
+        self._records_db.insert(record)
+
+        return record
 
     def __encode(self, wavfname, outfname, fmt=ENCODE_FORMAT):
         inp = av.open(wavfname, 'r')
