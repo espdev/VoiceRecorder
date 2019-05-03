@@ -3,9 +3,7 @@
 """
 """
 
-import datetime
 import functools
-import itertools
 import os
 import tempfile
 
@@ -17,31 +15,29 @@ from PyQt5 import QtWidgets
 from . import __app_name__
 from . import __version__
 
+from . import mainwindow_ui
+from . import recordsmanager
 from . import statusinfo
 from . import audiolevel
 from . import helperutils
-from . import mainwindow_ui
-from . import recordsmanager
 
 
 class MainWindow(QtWidgets.QMainWindow):
     """Application MainWindow class
     """
 
-    RECORD_DATETIME_FORMAT = '%d.%m.%Y %H:%M:%S'
-
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self.__ui = mainwindow_ui.Ui_MainWindow()
+        self.ui = mainwindow_ui.Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.__level_monitors = [
+        self._level_monitors = [
             audiolevel.AudioLevelMonitor(),
             audiolevel.AudioLevelMonitor(),
         ]
 
-        for levmon in self.__level_monitors:
+        for levmon in self._level_monitors:
             levmon.setVisible(False)
             levmon.setMinimumWidth(50)
             levmon.setMaximumWidth(250)
@@ -49,86 +45,77 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.ui.layoutAudioLevels.addWidget(levmon)
 
-        self.__recording_status_info = statusinfo.StatusInfo()
-        self.__recording_status_info.set_stop_status()
+        self._recording_status_info = statusinfo.StatusInfo()
+        self._recording_status_info.set_stop_status()
 
         status_bar: QtWidgets.QStatusBar = self.statusBar()
-        status_bar.addWidget(self.__recording_status_info)
+        status_bar.addWidget(self._recording_status_info)
 
         self.setWindowTitle(f'{__app_name__} - {__version__}')
         self.ui.labelRecordDuration.setVisible(False)
 
-        self.ui.tableRecords.horizontalHeader().setSectionResizeMode(
-            0, QtWidgets.QHeaderView.Stretch)
-        self.ui.tableRecords.horizontalHeader().setSectionResizeMode(
-            1, QtWidgets.QHeaderView.ResizeToContents)
-        self.ui.tableRecords.verticalHeader().setSectionResizeMode(
-            QtWidgets.QHeaderView.ResizeToContents)
-
         settings_fname = os.path.normpath(
             os.path.join(helperutils.get_app_config_dir(), __app_name__+'.ini'))
 
-        self.__settings = QtCore.QSettings(
+        self._settings = QtCore.QSettings(
             settings_fname, QtCore.QSettings.IniFormat, self)
-        self.__settings_group = helperutils.qsettings_group(self.__settings)
+        self._settings_group = helperutils.qsettings_group(self._settings)
 
-        self.__tmp_audio_fname = ''
+        self._tmp_audio_fname = ''
 
-        self.__audio_recorder = QtMultimedia.QAudioRecorder(self)
+        self._audio_recorder = QtMultimedia.QAudioRecorder(self)
 
-        self.__audio_levels_calculator = audiolevel.AudioLevelsCalculator(
-            self, self.__audio_recorder)
-        self.__audio_levels_calculator.levels_calculated.connect(
-            self.__on_show_audio_levels)
+        self._audio_levels_calculator = audiolevel.AudioLevelsCalculator(self, self._audio_recorder)
+        self._audio_levels_calculator.levels_calculated.connect(self._on_show_audio_levels)
 
-        self.__records_manager = recordsmanager.RecordsManager(parent=self)
+        self._records_manager = recordsmanager.RecordsManager(parent=self)
 
-        self.ui.pbRecordingStartAndStop.toggled.connect(self.__on_start_stop)
-        self.ui.pbRecordingPause.toggled.connect(self.__on_pause)
+        self.ui.recordsTableView.setModel(self._records_manager.records_model)
+
+        self.ui.recordsTableView.horizontalHeader().setSectionResizeMode(
+            0, QtWidgets.QHeaderView.Stretch)
+        self.ui.recordsTableView.horizontalHeader().setSectionResizeMode(
+            1, QtWidgets.QHeaderView.ResizeToContents)
+        self.ui.recordsTableView.verticalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.ResizeToContents)
+
+        self.ui.pbRecordingStartAndStop.toggled.connect(self._on_start_stop)
+        self.ui.pbRecordingPause.toggled.connect(self._on_pause)
         self.ui.pbPlayRecords.clicked.connect(
-            functools.partial(self.__on_play_record, None))
-        self.ui.pbRemoveRecords.clicked.connect(self.__remove_selected_records)
+            functools.partial(self._on_play_record, None))
+        self.ui.pbRemoveRecords.clicked.connect(self._remove_selected_records)
 
-        self.ui.tableRecords.cellDoubleClicked.connect(self.__on_play_record)
-        self.ui.tableRecords.itemSelectionChanged.connect(
-            self.__on_change_selected_records)
-        self.ui.tableRecords.installEventFilter(self)
+        self.ui.recordsTableView.doubleClicked.connect(self._on_play_record)
+        self.ui.recordsTableView.selectionModel().selectionChanged.connect(self._on_change_selected_records)
+        self.ui.recordsTableView.installEventFilter(self)
 
-        self.__audio_recorder.durationChanged.connect(
-            self.__on_update_duration_time)
+        self._audio_recorder.durationChanged.connect(self._on_update_duration_time)
+        self._records_manager.encode_progress.connect(self._recording_status_info.set_encoding_progress)
 
-        self.__records_manager.encode_progress.connect(
-            self.__recording_status_info.set_encoding_progress)
-
-        self.__collect_audioinputs()
-        self.__setup_audiorecorder()
-        self.__read_settings()
-        self.__update_records_info()
+        self._collect_audioinputs()
+        self._setup_audiorecorder()
+        self._read_settings()
 
     def closeEvent(self, event):
-        self.__write_settings()
+        self._write_settings()
 
     def eventFilter(self, obj, event: QtGui.QKeyEvent):
-        if obj is not self.ui.tableRecords:
+        if obj is not self.ui.recordsTableView:
             return False
         if event.type() != QtCore.QEvent.KeyPress:
             return False
 
         if event.key() == QtCore.Qt.Key_Delete:
-            self.__remove_selected_records()
+            self._remove_selected_records()
             return True
 
         return False
 
-    @property
-    def ui(self):
-        return self.__ui
-
-    def __on_show_audio_levels(self, levels: list):
-        for mon, level in zip(self.__level_monitors, levels):
+    def _on_show_audio_levels(self, levels: list):
+        for mon, level in zip(self._level_monitors, levels):
             mon.set_level(level)
 
-    def __on_start_stop(self, is_checked):
+    def _on_start_stop(self, is_checked):
         pb_title_text = {
             True: self.tr('Stop'),
             False: self.tr('Record'),
@@ -139,87 +126,82 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.cmboxAudioInput.setEnabled(not is_checked)
 
         if is_checked:
-            self.__start_recording()
+            self._start_recording()
         else:
-            self.__stop_recording()
+            self._stop_recording()
 
-    def __on_pause(self, is_checked):
+    def _on_pause(self, is_checked):
         if is_checked:
-            self.__recording_status_info.set_pause_status()
-            self.__audio_recorder.pause()
+            self._recording_status_info.set_pause_status()
+            self._audio_recorder.pause()
         else:
-            self.__recording_status_info.set_record_status()
-            self.__audio_recorder.record()
+            self._recording_status_info.set_record_status()
+            self._audio_recorder.record()
 
-    def __on_update_duration_time(self, duration):
+    def _on_update_duration_time(self, duration):
         self.ui.labelRecordDuration.setText(
             helperutils.format_duration(duration))
 
-    def __on_play_record(self, index=None):
+    def _on_play_record(self, index: QtCore.QModelIndex = None):
         if index is None:
-            indexes = self.ui.tableRecords.selectedIndexes()
-            rows = self.__selected_rows(indexes)
-            item = self.ui.tableRecords.item(rows[0][0].row(), 0)
-        else:
-            item = self.ui.tableRecords.item(index, 0)
+            index = self.ui.recordsTableView.selectionModel().selectedRows(0)[0]
 
-        record_info = item.data(QtCore.Qt.UserRole)
-
+        record = index.data(QtCore.Qt.UserRole)
         filename = helperutils.get_filename_with_extension(
-            record_info['filename']).replace('\\', '/')
+            record['filename']).replace('\\', '/')
 
         record_url = QtCore.QUrl(filename)
         QtGui.QDesktopServices.openUrl(record_url)
 
-    def __on_change_selected_records(self):
-        selected_rows_count = len(self.__selected_rows(
-            self.ui.tableRecords.selectedIndexes()))
+    def _on_change_selected_records(self):
+        indexes = self.ui.recordsTableView.selectionModel().selectedRows(0)
+        num_selected_rows = len(indexes)
 
-        self.ui.pbRemoveRecords.setEnabled(selected_rows_count > 0)
-        self.ui.pbPlayRecords.setEnabled(selected_rows_count == 1)
+        self.ui.pbRemoveRecords.setEnabled(num_selected_rows > 0)
+        self.ui.pbPlayRecords.setEnabled(num_selected_rows == 1)
 
-    def __start_recording(self):
-        self.__tmp_audio_fname = tempfile.mktemp(
+    def _start_recording(self):
+        self._tmp_audio_fname = tempfile.mktemp(
             dir=helperutils.get_app_config_dir(), suffix='.wav')
 
-        self.__audio_recorder.setAudioInput(
+        self._audio_recorder.setAudioInput(
             self.ui.cmboxAudioInput.currentData(QtCore.Qt.UserRole))
-        self.__audio_recorder.setOutputLocation(
-            QtCore.QUrl.fromLocalFile(self.__tmp_audio_fname))
+        self._audio_recorder.setOutputLocation(
+            QtCore.QUrl.fromLocalFile(self._tmp_audio_fname))
 
-        for levmon in self.__level_monitors:
+        for levmon in self._level_monitors:
             levmon.setVisible(True)
 
-        self.__audio_recorder.record()
+        self._audio_recorder.record()
 
-        self.__recording_status_info.set_record_status()
+        self._recording_status_info.set_record_status()
         self.ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/stop'))
 
-    def __stop_recording(self):
-        duration = self.__audio_recorder.duration()
+    def _stop_recording(self):
+        duration = self._audio_recorder.duration()
 
-        self.__audio_recorder.stop()
-        self.__save_record({
-            'filename': self.__tmp_audio_fname,
+        self._audio_recorder.stop()
+        self._save_record({
+            'filename': self._tmp_audio_fname,
             'duration': duration,
         })
 
-        self.__recording_status_info.set_stop_status()
-        self.__on_update_duration_time(0)
+        self._recording_status_info.set_stop_status()
+        self._on_update_duration_time(0)
 
-        for levmon in self.__level_monitors:
+        for levmon in self._level_monitors:
             levmon.setVisible(False)
 
         self.ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/record'))
 
-    def __save_record(self, record_info):
+    def _save_record(self, record_info):
         QtWidgets.QApplication.setOverrideCursor(
             QtGui.QCursor(QtCore.Qt.WaitCursor))
 
-        self.__recording_status_info.set_encode_status()
+        self._recording_status_info.set_encode_status()
 
         try:
-            record_info = self.__records_manager.save_record(record_info)
+            self._records_manager.add_record(record_info)
         except Exception as err:
             QtWidgets.QMessageBox.critical(
                 self, 'Unable to save record', f'{err}')
@@ -227,16 +209,14 @@ class MainWindow(QtWidgets.QMainWindow):
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
-        self.__add_record_info_to_table(0, record_info)
-
-    def __collect_audioinputs(self):
+    def _collect_audioinputs(self):
         self.ui.cmboxAudioInput.addItem('Default', '')
 
-        ainputs = self.__audio_recorder.audioInputs()
+        ainputs = self._audio_recorder.audioInputs()
         for ainput in ainputs:
             self.ui.cmboxAudioInput.addItem(ainput, ainput)
 
-    def __setup_audiorecorder(self):
+    def _setup_audiorecorder(self):
         settings = QtMultimedia.QAudioEncoderSettings()
 
         settings.setCodec('')
@@ -247,75 +227,41 @@ class MainWindow(QtWidgets.QMainWindow):
         settings.setEncodingMode(
             QtMultimedia.QMultimedia.ConstantQualityEncoding)
 
-        self.__audio_recorder.setEncodingSettings(
+        self._audio_recorder.setEncodingSettings(
             settings, QtMultimedia.QVideoEncoderSettings(), '')
 
-    def __read_settings(self):
-        with self.__settings_group('UI'):
-            self.restoreGeometry(self.__settings.value(
+    def _read_settings(self):
+        with self._settings_group('UI'):
+            self.restoreGeometry(self._settings.value(
                 'WindowGeometry', self.saveGeometry()))
-            self.restoreState(self.__settings.value(
+            self.restoreState(self._settings.value(
                 'WindowState', self.saveState()))
 
-        with self.__settings_group('Audio'):
-            ainput = self.__settings.value('Input', 'Default')
+        with self._settings_group('Audio'):
+            ainput = self._settings.value('Input', 'Default')
             index = self.ui.cmboxAudioInput.findText(ainput)
 
             if index != -1:
                 self.ui.cmboxAudioInput.setCurrentIndex(index)
 
-        self.__records_manager.read_settings(self.__settings)
+        self._records_manager.read_settings(self._settings)
 
-    def __write_settings(self):
-        with self.__settings_group('UI'):
-            self.__settings.setValue('WindowGeometry', self.saveGeometry())
-            self.__settings.setValue('WindowState', self.saveState())
+    def _write_settings(self):
+        with self._settings_group('UI'):
+            self._settings.setValue('WindowGeometry', self.saveGeometry())
+            self._settings.setValue('WindowState', self.saveState())
 
-        with self.__settings_group('Audio'):
-            self.__settings.setValue(
+        with self._settings_group('Audio'):
+            self._settings.setValue(
                 'Input', self.ui.cmboxAudioInput.currentText())
 
-        self.__records_manager.write_settings(self.__settings)
+        self._records_manager.write_settings(self._settings)
 
-    def __add_record_info_to_table(self, index, record_info):
-        record_date = datetime.datetime.fromtimestamp(record_info['timestamp'])
+    def _remove_selected_records(self):
+        indexes = self.ui.recordsTableView.selectionModel().selectedRows(0)
+        records = [index.data(QtCore.Qt.UserRole) for index in indexes]
 
-        self.ui.tableRecords.insertRow(index)
+        for record in records:
+            self._records_manager.remove_record(record)
 
-        date_item = QtWidgets.QTableWidgetItem(
-            record_date.strftime(self.RECORD_DATETIME_FORMAT))
-        date_item.setData(QtCore.Qt.UserRole, record_info)
-
-        dur_item = QtWidgets.QTableWidgetItem(
-            helperutils.format_duration(record_info['duration']))
-        dur_item.setTextAlignment(QtCore.Qt.AlignCenter)
-
-        self.ui.tableRecords.setItem(index, 0, date_item)
-        self.ui.tableRecords.setItem(index, 1, dur_item)
-
-    def __update_records_info(self):
-        records_info = self.__records_manager.get_records_info()
-        self.ui.tableRecords.clearContents()
-        self.ui.tableRecords.setRowCount(0)
-
-        for i, record_info in enumerate(records_info):
-            self.__add_record_info_to_table(i, record_info)
-
-    def __remove_selected_records(self):
-        selected_items = self.ui.tableRecords.selectedItems()
-
-        if not selected_items:
-            return False
-
-        records_for_remove = [
-            (item, item.data(QtCore.Qt.UserRole))
-            for item in selected_items if item.data(QtCore.Qt.UserRole)
-        ]
-
-        for item, record_info in records_for_remove:
-            row = self.ui.tableRecords.row(item)
-            self.__records_manager.remove_record(record_info)
-            self.ui.tableRecords.removeRow(row)
-
-    def __selected_rows(self, selected_elems):
-        return list(itertools.zip_longest(*([iter(selected_elems)] * 2)))
+        self._on_change_selected_records()
