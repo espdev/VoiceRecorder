@@ -44,5 +44,9 @@ class Settings(metaclass=SettingsMeta):
         return self._filename
 
     @property
+    def s(self):
+        return self._settings
+
+    @property
     def group(self):
         return self._settings_group
