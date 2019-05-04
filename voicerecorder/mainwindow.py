@@ -202,10 +202,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _read_settings(self):
         with self._settings_group('UI'):
-            self.restoreGeometry(self._settings.value(
-                'WindowGeometry', self.saveGeometry()))
-            self.restoreState(self._settings.value(
-                'WindowState', self.saveState()))
+            self.restoreGeometry(self._settings.value('WindowGeometry', self.saveGeometry()))
+            self.restoreState(self._settings.value('WindowState', self.saveState()))
 
         with self._settings_group('Audio'):
             ainput = self._settings.value('Input', 'Default')
@@ -222,8 +220,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self._settings.setValue('WindowState', self.saveState())
 
         with self._settings_group('Audio'):
-            self._settings.setValue(
-                'Input', self.ui.cmboxAudioInput.currentText())
+            self._settings.setValue('Input', self.ui.cmboxAudioInput.currentText())
 
         self._records_manager.write_settings(self._settings)
 
