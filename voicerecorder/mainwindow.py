@@ -205,8 +205,6 @@ class MainWindow(QtWidgets.QMainWindow):
         if index != -1:
             self.ui.cmboxAudioInput.setCurrentIndex(index)
 
-        self._records_manager.read_settings()
-
     def _write_settings(self):
         with self._settings.group('UI') as s:
             s.setValue('WindowGeometry', self.saveGeometry())
@@ -214,8 +212,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         with self._settings.group('Audio') as s:
             s.setValue('Input', self.ui.cmboxAudioInput.currentText())
-
-        self._records_manager.write_settings()
 
     def _remove_selected_records(self):
         indexes = self.ui.recordsTableView.selectionModel().selectedRows(0)

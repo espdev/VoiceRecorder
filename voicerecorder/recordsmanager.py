@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-"""
-"""
-
 import os
 import time
 import shutil
@@ -16,12 +13,20 @@ from PyQt5 import QtCore
 from . import __app_name__
 from . import helperutils
 from . import recordsmodel
-from . import audiorecorder
 from . import settings
 
 
 RECORDS_DATABASE_NAME = 'records_db.json'
 RECORD_DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
+
+
+def get_records_directory():
+    documents_dir = QtCore.QStandardPaths.standardLocations(
+        QtCore.QStandardPaths.DocumentsLocation)[0]
+    default_records_dir = os.path.normpath(os.path.join(documents_dir, __app_name__))
+
+    with settings.Settings().group('Path') as s:
+        return s.value('RecordsDirectory', default_records_dir)
 
 
 class RecordsManager(QtCore.QObject):
@@ -34,19 +39,19 @@ class RecordsManager(QtCore.QObject):
         super().__init__(parent)
 
         self._settings = settings.Settings(self)
+        self._records_dir = get_records_directory()
 
-        self._default_records_dir = self._get_default_records_dir()
-        self._records_dir = self._default_records_dir
-
-        self._records_db = TinyDB(self._get_records_db_path(),
-                                  storage=CachingMiddleware(JSONStorage))
-
+        self._records_db = TinyDB(self._get_records_db_path(), storage=CachingMiddleware(JSONStorage))
         self._records_model = recordsmodel.RecordsTableModel(self._records_db, parent=self)
 
         self._remove_nonexistent_records()
 
     def __del__(self):
         self._records_db.close()
+
+        with self._settings.group('Path') as s:
+            if not s.contains('RecordsDirectory'):
+                s.setValue('RecordsDirectory', self._records_dir)
 
     @property
     def records_db(self) -> TinyDB:
@@ -56,7 +61,7 @@ class RecordsManager(QtCore.QObject):
     def records_model(self) -> QtCore.QAbstractTableModel:
         return self._records_model
 
-    def add_record(self, record: audiorecorder.TemporaryRecord):
+    def add_record(self, record):
         if not os.path.exists(self._records_dir):
             os.makedirs(self._records_dir)
 
@@ -74,15 +79,6 @@ class RecordsManager(QtCore.QObject):
         query = Query()
         self._records_db.remove(query.filename == fname)
         self._records_model.endResetModel()
-
-    def read_settings(self):
-        with self._settings.group('Path') as s:
-            self._records_dir = s.value('RecordsDirectory', self._default_records_dir)
-
-    def write_settings(self):
-        with self._settings.group('Path') as s:
-            if not s.contains('RecordsDirectory'):
-                s.setValue('RecordsDirectory', self._records_dir)
 
     def _remove_nonexistent_records(self):
         removed = []
@@ -116,11 +112,6 @@ class RecordsManager(QtCore.QObject):
         }
 
         self._records_db.insert(record_info)
-
-    @staticmethod
-    def _get_default_records_dir():
-        return os.path.normpath(
-            os.path.join(helperutils.get_documents_dir(), __app_name__))
 
     @staticmethod
     def _get_records_db_path():

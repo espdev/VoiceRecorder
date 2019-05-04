@@ -35,8 +35,3 @@ def set_exception_hook():
 def get_app_config_dir():
     return QtCore.QStandardPaths.standardLocations(
         QtCore.QStandardPaths.AppConfigLocation)[0]
-
-
-def get_documents_dir():
-    return QtCore.QStandardPaths.standardLocations(
-        QtCore.QStandardPaths.DocumentsLocation)[0]

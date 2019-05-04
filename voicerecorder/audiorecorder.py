@@ -12,7 +12,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtMultimedia
 
 from . import settings
-from . import helperutils
+from . import recordsmanager
 
 
 DEFAULT_ENCODE_FORMAT = ('libvorbis', '.ogg')
@@ -65,8 +65,15 @@ class AudioRecorder(QtCore.QObject):
             self._recorder.record()
             return
 
-        fd, fname = tempfile.mkstemp(prefix='record_', suffix='.wav',
-                                     dir=helperutils.get_app_config_dir())
+        records_dir = recordsmanager.get_records_directory()
+
+        with self._settings.group('Path') as s:
+            key = 'TemporaryRecordsDirectory'
+            tmp_dir = s.value(key, records_dir)
+            if not s.contains(key):
+                s.setValue(key, tmp_dir)
+
+        fd, fname = tempfile.mkstemp(prefix='record_', suffix='.wav', dir=tmp_dir)
         os.close(fd)
         url = QtCore.QUrl.fromLocalFile(fname)
 
