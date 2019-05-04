@@ -11,7 +11,11 @@ import av
 from PyQt5 import QtCore
 from PyQt5 import QtMultimedia
 
+from . import settings
 from . import helperutils
+
+
+DEFAULT_ENCODE_FORMAT = ('libvorbis', '.ogg')
 
 
 class TemporaryRecord:
@@ -41,8 +45,11 @@ class AudioRecorder(QtCore.QObject):
     def __init__(self, parent: t.Optional[QtCore.QObject] = None):
         super().__init__(parent)
 
+        self._settings = settings.Settings(self)
+
         self._recorder = QtMultimedia.QAudioRecorder(self)
         self._recorder.durationChanged.connect(lambda d: self.recording_progress.emit(d))
+
         self._setup()
 
     @property
@@ -75,13 +82,14 @@ class AudioRecorder(QtCore.QObject):
         self._recorder.stop()
         timestamp = int(time.time())
 
-        # FIXME: move to a config
-        encode_format = ('libvorbis', '.ogg')
+        with self._settings.group('AudioFormat') as s:
+            codec = s.value('Codec', DEFAULT_ENCODE_FORMAT[0])
+            ext = s.value('Ext', DEFAULT_ENCODE_FORMAT[1])
 
         wav_fname = self._recorder.outputLocation().toLocalFile()
-        out_fname = os.path.splitext(wav_fname)[0] + encode_format[1]
+        out_fname = os.path.splitext(wav_fname)[0] + ext
 
-        self._encode(wav_fname, out_fname, encode_format[0])
+        self._encode(wav_fname, out_fname, codec)
         os.unlink(wav_fname)
 
         return TemporaryRecord(
@@ -107,13 +115,13 @@ class AudioRecorder(QtCore.QObject):
         self._recorder.setEncodingSettings(
             settings, QtMultimedia.QVideoEncoderSettings(), '')
 
-    def _encode(self, wav_fname, out_fname, fmt):
+    def _encode(self, wav_fname, out_fname, codec):
         self.encoding_started.emit()
 
         inp = av.open(wav_fname, 'r')
         out = av.open(out_fname, 'w')
 
-        ostream = out.add_stream(fmt)
+        ostream = out.add_stream(codec)
 
         with wave.open(wav_fname, 'rb') as wav:
             num_frames = wav.getnframes()
