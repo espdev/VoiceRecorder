@@ -10,9 +10,6 @@ import typing as t
 from PyQt5 import QtCore
 
 
-AV_TIME_BASE = 1000000
-
-
 def format_duration(duration: int):
     duration_delta = datetime.timedelta(milliseconds=duration)
 
