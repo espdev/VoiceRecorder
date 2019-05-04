@@ -6,7 +6,6 @@
 import sys
 import contextlib
 import datetime
-import glob
 import typing as t
 
 from PyQt5 import QtCore
@@ -54,11 +53,3 @@ def qsettings_group(settings: QtCore.QSettings):
         yield
         settings.endGroup()
     return qsettings_group_context
-
-
-def get_filename_with_extension(filename, ext='.*'):
-    f = glob.glob(filename + ext)
-    if f:
-        return f[0]
-    else:
-        return ''
