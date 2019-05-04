@@ -82,7 +82,7 @@ class AudioRecorder(QtCore.QObject):
         self._recorder.stop()
         timestamp = int(time.time())
 
-        with self._settings.group('AudioFormat') as s:
+        with self._settings.group('Audio') as s:
             codec = s.value('Codec', DEFAULT_ENCODE_FORMAT[0])
             ext = s.value('Ext', DEFAULT_ENCODE_FORMAT[1])
 
