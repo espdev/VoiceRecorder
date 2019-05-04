@@ -17,6 +17,7 @@ from . import __app_name__
 from . import helperutils
 from . import recordsmodel
 from . import audiorecorder
+from . import settings
 
 
 RECORDS_DATABASE_NAME = 'records_db.json'
@@ -31,6 +32,8 @@ class RecordsManager(QtCore.QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self._settings = settings.Settings(self)
 
         self._default_records_dir = self._get_default_records_dir()
         self._records_dir = self._default_records_dir
@@ -72,15 +75,14 @@ class RecordsManager(QtCore.QObject):
         self._records_db.remove(query.filename == fname)
         self._records_model.endResetModel()
 
-    def read_settings(self, settings: QtCore.QSettings):
-        with helperutils.qsettings_group(settings)('Path'):
-            self._records_dir = settings.value(
-                'RecordsDirectory', self._default_records_dir)
+    def read_settings(self):
+        with self._settings.group('Path') as s:
+            self._records_dir = s.value('RecordsDirectory', self._default_records_dir)
 
-    def write_settings(self, settings: QtCore.QSettings):
-        with helperutils.qsettings_group(settings)('Path'):
-            if not settings.contains('RecordsDirectory'):
-                settings.setValue('RecordsDirectory', self._records_dir)
+    def write_settings(self):
+        with self._settings.group('Path') as s:
+            if not s.contains('RecordsDirectory'):
+                s.setValue('RecordsDirectory', self._records_dir)
 
     def _remove_nonexistent_records(self):
         removed = []

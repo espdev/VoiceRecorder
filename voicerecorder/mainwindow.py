@@ -4,7 +4,6 @@
 """
 
 import functools
-import os
 
 from PyQt5 import QtCore
 from PyQt5 import QtGui
@@ -16,6 +15,7 @@ from . import __version__
 from . import mainwindow_ui
 from . import audiorecorder
 from . import recordsmanager
+from . import settings
 from . import statusinfo
 from . import audiolevel
 from . import helperutils
@@ -53,12 +53,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(f'{__app_name__} - {__version__}')
         self.ui.labelRecordDuration.setVisible(False)
 
-        settings_fname = os.path.normpath(
-            os.path.join(helperutils.get_app_config_dir(), __app_name__+'.ini'))
-
-        self._settings = QtCore.QSettings(
-            settings_fname, QtCore.QSettings.IniFormat, self)
-        self._settings_group = helperutils.qsettings_group(self._settings)
+        self._settings = settings.Settings(self)
 
         self._audio_recorder = audiorecorder.AudioRecorder(self)
 
@@ -199,28 +194,28 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.cmboxAudioInput.addItem(ainput, ainput)
 
     def _read_settings(self):
-        with self._settings_group('UI'):
-            self.restoreGeometry(self._settings.value('WindowGeometry', self.saveGeometry()))
-            self.restoreState(self._settings.value('WindowState', self.saveState()))
+        with self._settings.group('UI') as s:
+            self.restoreGeometry(s.value('WindowGeometry', self.saveGeometry()))
+            self.restoreState(s.value('WindowState', self.saveState()))
 
-        with self._settings_group('Audio'):
-            ainput = self._settings.value('Input', 'Default')
-            index = self.ui.cmboxAudioInput.findText(ainput)
+        with self._settings.group('Audio') as s:
+            ainput = s.value('Input', 'Default')
 
-            if index != -1:
-                self.ui.cmboxAudioInput.setCurrentIndex(index)
+        index = self.ui.cmboxAudioInput.findText(ainput)
+        if index != -1:
+            self.ui.cmboxAudioInput.setCurrentIndex(index)
 
-        self._records_manager.read_settings(self._settings)
+        self._records_manager.read_settings()
 
     def _write_settings(self):
-        with self._settings_group('UI'):
-            self._settings.setValue('WindowGeometry', self.saveGeometry())
-            self._settings.setValue('WindowState', self.saveState())
+        with self._settings.group('UI') as s:
+            s.setValue('WindowGeometry', self.saveGeometry())
+            s.setValue('WindowState', self.saveState())
 
-        with self._settings_group('Audio'):
-            self._settings.setValue('Input', self.ui.cmboxAudioInput.currentText())
+        with self._settings.group('Audio') as s:
+            s.setValue('Input', self.ui.cmboxAudioInput.currentText())
 
-        self._records_manager.write_settings(self._settings)
+        self._records_manager.write_settings()
 
     def _remove_selected_records(self):
         indexes = self.ui.recordsTableView.selectionModel().selectedRows(0)

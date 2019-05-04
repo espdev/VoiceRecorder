@@ -4,7 +4,6 @@
 """
 
 import sys
-import contextlib
 import datetime
 import typing as t
 
@@ -44,12 +43,3 @@ def get_app_config_dir():
 def get_documents_dir():
     return QtCore.QStandardPaths.standardLocations(
         QtCore.QStandardPaths.DocumentsLocation)[0]
-
-
-def qsettings_group(settings: QtCore.QSettings):
-    @contextlib.contextmanager
-    def qsettings_group_context(group_name: str):
-        settings.beginGroup(group_name)
-        yield
-        settings.endGroup()
-    return qsettings_group_context
