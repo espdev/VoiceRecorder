@@ -32,8 +32,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         self._level_monitors = [
-            audiolevel.AudioLevelMonitor(),
-            audiolevel.AudioLevelMonitor(),
+            audiolevel.AudioLevelMonitor(self),
+            audiolevel.AudioLevelMonitor(self),
         ]
 
         for levmon in self._level_monitors:
@@ -59,8 +59,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self._settings = QtCore.QSettings(
             settings_fname, QtCore.QSettings.IniFormat, self)
         self._settings_group = helperutils.qsettings_group(self._settings)
-
-        self._tmp_audio_fname = ''
 
         self._audio_recorder = audiorecorder.AudioRecorder(self)
 
