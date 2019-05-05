@@ -96,8 +96,8 @@ class RecordsManager(QtCore.QObject):
             self._records_model.endResetModel()
 
     def _add_record(self, tmp_record):
-        record_timestamp = int(time.time())
-        record_date_str = helperutils.format_timestamp(record_timestamp, RECORD_FNAME_DATETIME_FORMAT)
+        record_date_str = helperutils.format_timestamp(
+            tmp_record.timestamp, RECORD_FNAME_DATETIME_FORMAT)
 
         _, ext = os.path.splitext(tmp_record.filename)
         record_file_name = f'record-{record_date_str}{ext}'
