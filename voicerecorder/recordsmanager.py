@@ -17,7 +17,7 @@ from . import settings
 
 
 RECORDS_DATABASE_NAME = 'records_db.json'
-RECORD_DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
+RECORD_FNAME_DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
 
 
 def get_records_directory():
@@ -97,7 +97,7 @@ class RecordsManager(QtCore.QObject):
 
     def _add_record(self, tmp_record):
         record_timestamp = int(time.time())
-        record_date_str = helperutils.format_timestamp(record_timestamp, RECORD_DATETIME_FORMAT)
+        record_date_str = helperutils.format_timestamp(record_timestamp, RECORD_FNAME_DATETIME_FORMAT)
 
         _, ext = os.path.splitext(tmp_record.filename)
         record_file_name = f'record-{record_date_str}{ext}'
