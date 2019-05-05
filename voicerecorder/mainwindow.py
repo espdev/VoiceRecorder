@@ -165,8 +165,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             self._audio_recorder.stop()
         except Exception as err:
-            QtWidgets.QMessageBox.critical(
-                self, 'Unable to save record', f'{err}')
+            QtWidgets.QMessageBox.critical(self, 'Unable to save record', f'{err}')
         else:
             self._records_manager.add_record(self._audio_recorder.record)
         finally:
