@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import time
-import shutil
 
 from tinydb import TinyDB, Query
 from tinydb.storages import JSONStorage
@@ -10,9 +8,8 @@ from tinydb.middlewares import CachingMiddleware
 
 from PyQt5 import QtCore
 
-from . import utils
-from . import recordsmodel
 from . import settings
+from . import recordsmodel
 
 
 class RecordsManager(QtCore.QObject):
@@ -49,7 +46,13 @@ class RecordsManager(QtCore.QObject):
             os.makedirs(self._records_dir)
 
         self._records_model.beginResetModel()
-        self._add_record(record)
+
+        self._records_db.insert({
+            'filename': record.filename,
+            'duration': record.duration,
+            'timestamp': record.timestamp,
+        })
+
         self._records_model.endResetModel()
 
     def remove_record(self, record_info: dict):
@@ -77,21 +80,3 @@ class RecordsManager(QtCore.QObject):
             query = Query()
             self._records_db.remove(query.filename.one_of(removed))
             self._records_model.endResetModel()
-
-    def _add_record(self, tmp_record):
-        record_date_str = utils.format_timestamp(
-            tmp_record.timestamp, self._settings.get_record_filename_datetime_format())
-
-        _, ext = os.path.splitext(tmp_record.filename)
-        record_file_name = f'record-{record_date_str}{ext}'
-        record_file_path = os.path.join(self._records_dir, record_file_name)
-
-        shutil.copy2(tmp_record.filename, record_file_path)
-
-        record_info = {
-            'filename': record_file_path,
-            'duration': tmp_record.duration,
-            'timestamp': tmp_record.timestamp,
-        }
-
-        self._records_db.insert(record_info)

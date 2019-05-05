@@ -4,6 +4,7 @@ import os
 import tempfile
 import wave
 import time
+import shutil
 import typing as t
 
 import av
@@ -12,21 +13,66 @@ from PyQt5 import QtCore
 from PyQt5 import QtMultimedia
 
 from . import settings
+from . import utils
 
 
-class TemporaryRecord:
+class AudioRecord(QtCore.QObject):
+    """Stores audio record info
+    """
 
-    def __init__(self, filename: str, duration: int, timestamp: int):
-        self.filename = filename
-        self.duration = duration
-        self.timestamp = timestamp
+    def __init__(self, recorder: 'QtMultimedia.QAudioRecorder'):
+        super().__init__(recorder)
 
-    def __del__(self):
-        if self.is_exist():
-            os.unlink(self.filename)
+        self._settings = settings.Settings(self)
 
-    def is_exist(self):
-        return os.path.isfile(self.filename)
+        self._recorder = recorder
+        self._recorder.setOutputLocation(self._make_temporary_wav())
+        self._recorder.durationChanged.connect(self._update)
+
+        self._filename = ''
+        self._duration = 0
+        self._timestamp = -1
+
+    @property
+    def filename(self) -> str:
+        return self._filename
+
+    @property
+    def duration(self) -> int:
+        return self._duration
+
+    @property
+    def timestamp(self) -> int:
+        return self._timestamp
+
+    def save(self, encoder):
+        codec, ext = self._settings.get_audio_format()
+
+        wav_fname = self._recorder.outputLocation().toLocalFile()
+        out_fname = os.path.splitext(wav_fname)[0] + ext
+
+        encoder(wav_fname, out_fname, codec)
+        os.unlink(wav_fname)
+
+        datetime_format = self._settings.get_record_filename_datetime_format()
+        record_date_str = utils.format_timestamp(self.timestamp, datetime_format)
+
+        _, ext = os.path.splitext(out_fname)
+        fname = f'record-{record_date_str}{ext}'
+        self._filename = os.path.join(self._settings.get_records_directory(), fname)
+
+        shutil.move(out_fname, self.filename)
+
+    def _update(self, duration):
+        self._duration = duration
+        self._timestamp = int(time.time())
+
+    def _make_temporary_wav(self):
+        tmp_records_dir = self._settings.get_temporary_records_directory()
+
+        fd, fname = tempfile.mkstemp(prefix='record_', suffix='.wav', dir=tmp_records_dir)
+        os.close(fd)
+        return QtCore.QUrl.fromLocalFile(fname)
 
 
 class AudioRecorder(QtCore.QObject):
@@ -46,6 +92,7 @@ class AudioRecorder(QtCore.QObject):
         self._recorder = QtMultimedia.QAudioRecorder(self)
         self._recorder.durationChanged.connect(lambda d: self.recording_progress.emit(d))
 
+        self._record = None
         self._setup_recorder()
 
     @property
@@ -61,57 +108,40 @@ class AudioRecorder(QtCore.QObject):
             self._recorder.record()
             return
 
+        self._record = AudioRecord(self._recorder)
+
         self._recorder.setAudioInput(audio_input)
-        self._recorder.setOutputLocation(self._get_tmp_wav_url())
         self._recorder.record()
 
-    def stop(self) -> t.Optional[TemporaryRecord]:
+    @property
+    def record(self):
+        return self._record
+
+    def stop(self) -> t.Optional[AudioRecord]:
         if self._recorder.state() == QtMultimedia.QMediaRecorder.StoppedState:
             return
 
-        duration = self._recorder.duration()
         self._recorder.stop()
-        timestamp = int(time.time())
-
-        codec, ext = self._settings.get_audio_format()
-
-        wav_fname = self._recorder.outputLocation().toLocalFile()
-        out_fname = os.path.splitext(wav_fname)[0] + ext
-
-        self._encode(wav_fname, out_fname, codec)
-        os.unlink(wav_fname)
-
-        return TemporaryRecord(
-            filename=out_fname,
-            duration=duration,
-            timestamp=timestamp
-        )
+        self._record.save(encoder=self._encode)
 
     def pause(self):
         if self._recorder.state() == QtMultimedia.QMediaRecorder.RecordingState:
             self._recorder.pause()
 
     def _setup_recorder(self):
-        settings = QtMultimedia.QAudioEncoderSettings()
+        s = QtMultimedia.QAudioEncoderSettings()
 
-        settings.setCodec('')
-        settings.setSampleRate(48000)
-        settings.setBitRate(128000)
-        settings.setChannelCount(2)
-        settings.setQuality(QtMultimedia.QMultimedia.HighQuality)
-        settings.setEncodingMode(QtMultimedia.QMultimedia.ConstantQualityEncoding)
+        s.setCodec('')
+        s.setSampleRate(48000)
+        s.setBitRate(128000)
+        s.setChannelCount(2)
+        s.setQuality(QtMultimedia.QMultimedia.HighQuality)
+        s.setEncodingMode(QtMultimedia.QMultimedia.ConstantQualityEncoding)
 
         self._recorder.setEncodingSettings(
-            settings, QtMultimedia.QVideoEncoderSettings(), '')
+            s, QtMultimedia.QVideoEncoderSettings(), '')
 
-    def _get_tmp_wav_url(self):
-        tmp_records_dir = self._settings.get_temporary_records_directory()
-
-        fd, fname = tempfile.mkstemp(prefix='record_', suffix='.wav', dir=tmp_records_dir)
-        os.close(fd)
-        return QtCore.QUrl.fromLocalFile(fname)
-
-    def _encode(self, wav_fname, out_fname, codec):
+    def _encode(self, wav_fname: str, out_fname: str, codec: str):
         self.encoding_started.emit()
 
         inp = av.open(wav_fname, 'r')

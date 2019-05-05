@@ -160,9 +160,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/stop'))
 
     def _stop_recording(self):
-        record = self._audio_recorder.stop()
+        QtWidgets.QApplication.setOverrideCursor(
+            QtGui.QCursor(QtCore.Qt.WaitCursor))
 
-        self._save_record(record)
+        try:
+            self._audio_recorder.stop()
+        except Exception as err:
+            QtWidgets.QMessageBox.critical(
+                self, 'Unable to save record', f'{err}')
+            return
+        finally:
+            QtWidgets.QApplication.restoreOverrideCursor()
+
+        self._records_manager.add_record(self._audio_recorder.record)
         self._recording_status_info.set_stop_status()
         self._on_update_duration_time(0)
 
@@ -170,19 +180,6 @@ class MainWindow(QtWidgets.QMainWindow):
             levmon.setVisible(False)
 
         self.ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/record'))
-
-    def _save_record(self, record: audiorecorder.TemporaryRecord):
-        QtWidgets.QApplication.setOverrideCursor(
-            QtGui.QCursor(QtCore.Qt.WaitCursor))
-
-        try:
-            self._records_manager.add_record(record)
-        except Exception as err:
-            QtWidgets.QMessageBox.critical(
-                self, 'Unable to save record', f'{err}')
-            return
-        finally:
-            QtWidgets.QApplication.restoreOverrideCursor()
 
     def _collect_audioinputs(self):
         self.ui.cmboxAudioInput.addItem('Default', '')
