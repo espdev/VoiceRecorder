@@ -9,11 +9,11 @@ from PyQt5 import QtWidgets
 from . import __app_name__
 from . import __version__
 
-from . import audiorecorder
-from . import recordsmanager
 from . import settings
-from . import statusinfo
+from . import recordsmanager
+from . import audiorecorder
 from . import audiolevel
+from . import statusinfo
 from . import utils
 
 from . import mainwindow_ui
@@ -55,6 +55,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._audio_recorder = audiorecorder.AudioRecorder(self)
 
+        self._audio_recorder.recording_progress.connect(self._on_update_duration_time)
+        self._audio_recorder.encoding_progress.connect(self._recording_status_info.set_encoding_progress)
+        self._audio_recorder.encoding_started.connect(self._recording_status_info.set_encode_status)
+        self._audio_recorder.encoding_finished.connect(self._recording_status_info.set_stop_status)
+
         self._audio_levels_calculator = audiolevel.AudioLevelsCalculator(self, self._audio_recorder.recorder)
         self._audio_levels_calculator.levels_calculated.connect(self._on_show_audio_levels)
 
@@ -69,20 +74,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.recordsTableView.verticalHeader().setSectionResizeMode(
             QtWidgets.QHeaderView.ResizeToContents)
 
-        self.ui.pbRecordingStartAndStop.toggled.connect(self._on_start_stop)
-        self.ui.pbRecordingPause.toggled.connect(self._on_pause)
-        self.ui.pbPlayRecords.clicked.connect(
-            functools.partial(self._on_play_record, None))
-        self.ui.pbRemoveRecords.clicked.connect(self._remove_selected_records)
-
         self.ui.recordsTableView.doubleClicked.connect(self._on_play_record)
         self.ui.recordsTableView.selectionModel().selectionChanged.connect(self._on_change_selected_records)
         self.ui.recordsTableView.installEventFilter(self)
 
-        self._audio_recorder.recording_progress.connect(self._on_update_duration_time)
-        self._audio_recorder.encoding_progress.connect(self._recording_status_info.set_encoding_progress)
-        self._audio_recorder.encoding_started.connect(self._recording_status_info.set_encode_status)
-        self._audio_recorder.encoding_finished.connect(self._recording_status_info.set_stop_status)
+        self.ui.pbRecordingStartAndStop.toggled.connect(self._on_start_stop)
+        self.ui.pbRecordingPause.toggled.connect(self._on_pause)
+        self.ui.pbPlayRecords.clicked.connect(functools.partial(self._on_play_record, None))
+        self.ui.pbRemoveRecords.clicked.connect(self._remove_selected_records)
 
         self._collect_audioinputs()
         self._read_settings()
@@ -113,8 +112,12 @@ class MainWindow(QtWidgets.QMainWindow):
         }
 
         self.ui.pbRecordingStartAndStop.setText(pb_title_text[is_checked])
-        self.ui.labelRecordDuration.setVisible(is_checked)
         self.ui.cmboxAudioInput.setEnabled(not is_checked)
+
+        for levmon in self._level_monitors:
+            levmon.setVisible(is_checked)
+
+        self.ui.labelRecordDuration.setVisible(is_checked)
 
         if is_checked:
             self._start_recording()
@@ -130,8 +133,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self._audio_recorder.start()
 
     def _on_update_duration_time(self, duration):
-        self.ui.labelRecordDuration.setText(
-            utils.format_duration(duration))
+        self.ui.labelRecordDuration.setText(utils.format_duration(duration))
 
     def _on_play_record(self, index: QtCore.QModelIndex = None):
         if index is None:
@@ -151,9 +153,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pbPlayRecords.setEnabled(num_selected_rows == 1)
 
     def _start_recording(self):
-        for levmon in self._level_monitors:
-            levmon.setVisible(True)
-
         self._audio_recorder.start()
         self._recording_status_info.set_record_status()
 
@@ -168,16 +167,13 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception as err:
             QtWidgets.QMessageBox.critical(
                 self, 'Unable to save record', f'{err}')
-            return
+        else:
+            self._records_manager.add_record(self._audio_recorder.record)
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
-        self._records_manager.add_record(self._audio_recorder.record)
         self._recording_status_info.set_stop_status()
         self._on_update_duration_time(0)
-
-        for levmon in self._level_monitors:
-            levmon.setVisible(False)
 
         self.ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/record'))
 
