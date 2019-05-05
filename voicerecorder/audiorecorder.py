@@ -50,7 +50,7 @@ class AudioRecorder(QtCore.QObject):
         self._recorder = QtMultimedia.QAudioRecorder(self)
         self._recorder.durationChanged.connect(lambda d: self.recording_progress.emit(d))
 
-        self._setup()
+        self._setup_recorder()
 
     @property
     def recorder(self) -> QtMultimedia.QAudioRecorder:
@@ -109,7 +109,7 @@ class AudioRecorder(QtCore.QObject):
         if self._recorder.state() == QtMultimedia.QMediaRecorder.RecordingState:
             self._recorder.pause()
 
-    def _setup(self):
+    def _setup_recorder(self):
         settings = QtMultimedia.QAudioEncoderSettings()
 
         settings.setCodec('')
