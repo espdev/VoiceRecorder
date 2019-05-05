@@ -12,7 +12,8 @@ from PyQt5.QtCore import (
     QVariant,
 )
 
-from . import helperutils
+from . import utils
+from . import settings
 
 
 class RecordsTableModel(QAbstractTableModel):
@@ -23,11 +24,11 @@ class RecordsTableModel(QAbstractTableModel):
 
     COLUMN_DATE = 0
     COLUMN_DURATION = 1
-    RECORD_DATETIME_FORMAT = '%d.%m.%Y %H:%M:%S'
 
     def __init__(self, records_db: tinydb.TinyDB, parent: t.Optional[QObject] = None):
         super().__init__(parent)
         self._records_db = records_db
+        self._settings = settings.Settings(self)
 
     def rowCount(self, parent_index: QModelIndex = QModelIndex()) -> int:
         return len(self._records_db)
@@ -65,8 +66,9 @@ class RecordsTableModel(QAbstractTableModel):
         record = records[row]
 
         if role == Qt.DisplayRole:
-            record_date = helperutils.format_timestamp(record['timestamp'], self.RECORD_DATETIME_FORMAT)
-            record_duration = helperutils.format_duration(record['duration'])
+            record_date = utils.format_timestamp(
+                record['timestamp'], self._settings.get_record_table_datetime_format())
+            record_duration = utils.format_duration(record['duration'])
 
             return {
                 self.COLUMN_DATE: record_date,

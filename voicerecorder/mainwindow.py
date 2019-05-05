@@ -9,13 +9,14 @@ from PyQt5 import QtWidgets
 from . import __app_name__
 from . import __version__
 
-from . import mainwindow_ui
 from . import audiorecorder
 from . import recordsmanager
 from . import settings
 from . import statusinfo
 from . import audiolevel
-from . import helperutils
+from . import utils
+
+from . import mainwindow_ui
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -130,7 +131,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _on_update_duration_time(self, duration):
         self.ui.labelRecordDuration.setText(
-            helperutils.format_duration(duration))
+            utils.format_duration(duration))
 
     def _on_play_record(self, index: QtCore.QModelIndex = None):
         if index is None:

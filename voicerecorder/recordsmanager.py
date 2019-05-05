@@ -10,23 +10,9 @@ from tinydb.middlewares import CachingMiddleware
 
 from PyQt5 import QtCore
 
-from . import __app_name__
-from . import helperutils
+from . import utils
 from . import recordsmodel
 from . import settings
-
-
-RECORDS_DATABASE_NAME = 'records_db.json'
-RECORD_FNAME_DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
-
-
-def get_records_directory():
-    documents_dir = QtCore.QStandardPaths.standardLocations(
-        QtCore.QStandardPaths.DocumentsLocation)[0]
-    default_records_dir = os.path.normpath(os.path.join(documents_dir, __app_name__))
-
-    with settings.Settings().group('Path') as s:
-        return s.value('RecordsDirectory', default_records_dir)
 
 
 class RecordsManager(QtCore.QObject):
@@ -39,19 +25,16 @@ class RecordsManager(QtCore.QObject):
         super().__init__(parent)
 
         self._settings = settings.Settings(self)
-        self._records_dir = get_records_directory()
+        self._records_dir = self._settings.get_records_directory()
 
-        self._records_db = TinyDB(self._get_records_db_path(), storage=CachingMiddleware(JSONStorage))
+        self._records_db = TinyDB(self._settings.get_records_database_path(),
+                                  storage=CachingMiddleware(JSONStorage))
         self._records_model = recordsmodel.RecordsTableModel(self._records_db, parent=self)
 
         self._remove_nonexistent_records()
 
     def __del__(self):
         self._records_db.close()
-
-        with self._settings.group('Path') as s:
-            if not s.contains('RecordsDirectory'):
-                s.setValue('RecordsDirectory', self._records_dir)
 
     @property
     def records_db(self) -> TinyDB:
@@ -96,8 +79,8 @@ class RecordsManager(QtCore.QObject):
             self._records_model.endResetModel()
 
     def _add_record(self, tmp_record):
-        record_date_str = helperutils.format_timestamp(
-            tmp_record.timestamp, RECORD_FNAME_DATETIME_FORMAT)
+        record_date_str = utils.format_timestamp(
+            tmp_record.timestamp, self._settings.get_record_filename_datetime_format())
 
         _, ext = os.path.splitext(tmp_record.filename)
         record_file_name = f'record-{record_date_str}{ext}'
@@ -112,8 +95,3 @@ class RecordsManager(QtCore.QObject):
         }
 
         self._records_db.insert(record_info)
-
-    @staticmethod
-    def _get_records_db_path():
-        return os.path.normpath(
-            os.path.join(helperutils.get_app_config_dir(), RECORDS_DATABASE_NAME))

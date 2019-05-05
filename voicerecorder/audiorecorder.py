@@ -12,10 +12,6 @@ from PyQt5 import QtCore
 from PyQt5 import QtMultimedia
 
 from . import settings
-from . import recordsmanager
-
-
-DEFAULT_ENCODE_FORMAT = ('libvorbis', '.ogg')
 
 
 class TemporaryRecord:
@@ -65,20 +61,8 @@ class AudioRecorder(QtCore.QObject):
             self._recorder.record()
             return
 
-        records_dir = recordsmanager.get_records_directory()
-
-        with self._settings.group('Path') as s:
-            key = 'TemporaryRecordsDirectory'
-            tmp_dir = s.value(key, records_dir)
-            if not s.contains(key):
-                s.setValue(key, tmp_dir)
-
-        fd, fname = tempfile.mkstemp(prefix='record_', suffix='.wav', dir=tmp_dir)
-        os.close(fd)
-        url = QtCore.QUrl.fromLocalFile(fname)
-
         self._recorder.setAudioInput(audio_input)
-        self._recorder.setOutputLocation(url)
+        self._recorder.setOutputLocation(self._get_tmp_wav_url())
         self._recorder.record()
 
     def stop(self) -> t.Optional[TemporaryRecord]:
@@ -89,9 +73,7 @@ class AudioRecorder(QtCore.QObject):
         self._recorder.stop()
         timestamp = int(time.time())
 
-        with self._settings.group('Audio') as s:
-            codec = s.value('Codec', DEFAULT_ENCODE_FORMAT[0])
-            ext = s.value('Ext', DEFAULT_ENCODE_FORMAT[1])
+        codec, ext = self._settings.get_audio_format()
 
         wav_fname = self._recorder.outputLocation().toLocalFile()
         out_fname = os.path.splitext(wav_fname)[0] + ext
@@ -121,6 +103,13 @@ class AudioRecorder(QtCore.QObject):
 
         self._recorder.setEncodingSettings(
             settings, QtMultimedia.QVideoEncoderSettings(), '')
+
+    def _get_tmp_wav_url(self):
+        tmp_records_dir = self._settings.get_temporary_records_directory()
+
+        fd, fname = tempfile.mkstemp(prefix='record_', suffix='.wav', dir=tmp_records_dir)
+        os.close(fd)
+        return QtCore.QUrl.fromLocalFile(fname)
 
     def _encode(self, wav_fname, out_fname, codec):
         self.encoding_started.emit()

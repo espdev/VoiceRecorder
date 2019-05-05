@@ -1,13 +1,7 @@
 # -*- coding: utf-8 -*-
 
-"""
-"""
-
-import sys
 import datetime
 import typing as t
-
-from PyQt5 import QtCore
 
 
 def format_duration(duration: int):
@@ -23,15 +17,3 @@ def format_duration(duration: int):
 
 def format_timestamp(timestamp: t.Union[int, float], fmt: str):
     return datetime.datetime.fromtimestamp(timestamp).strftime(f'{fmt}')
-
-
-def set_exception_hook():
-    def _exception_hook(exctype, value, traceback):
-        sys.__excepthook__(exctype, value, traceback)
-
-    sys.excepthook = _exception_hook
-
-
-def get_app_config_dir():
-    return QtCore.QStandardPaths.standardLocations(
-        QtCore.QStandardPaths.AppConfigLocation)[0]
