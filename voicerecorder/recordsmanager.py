@@ -1,28 +1,19 @@
 # -*- coding: utf-8 -*-
 
-"""
-"""
-
 import os
-import datetime
-import time
-import wave
 
-import av
-import tinydb
+from tinydb import TinyDB, Query
+from tinydb.storages import JSONStorage
+from tinydb.middlewares import CachingMiddleware
+
 from PyQt5 import QtCore
 
-from . import helperutils
-from . import __app_name__
-
-
-RECORDS_DATABASE_NAME = 'records_db.json'
-DATETIME_FORMAT = '%d-%m-%Y-%H-%M-%S'
-ENCODE_FORMAT = ('libvorbis', '.ogg')
+from . import settings
+from . import recordsmodel
 
 
 class RecordsManager(QtCore.QObject):
-    """
+    """Manages records
     """
 
     encode_progress = QtCore.pyqtSignal(int)
@@ -30,99 +21,62 @@ class RecordsManager(QtCore.QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.__default_records_dir = os.path.normpath(
-            os.path.join(helperutils.get_documents_dir(), __app_name__))
-        self.__records_dir = self.__default_records_dir
+        self._settings = settings.Settings(self)
+        self._records_dir = self._settings.get_records_directory()
 
-        self._records_db = tinydb.TinyDB(
-            os.path.join(helperutils.get_app_config_dir(), RECORDS_DATABASE_NAME))
+        self._records_db = TinyDB(self._settings.get_records_database_path(),
+                                  storage=CachingMiddleware(JSONStorage))
+        self._records_model = recordsmodel.RecordsTableModel(self._records_db, parent=self)
 
-    def save_record(self, record_info: dict):
-        if not os.path.exists(self.__records_dir):
-            os.makedirs(self.__records_dir)
+        self._remove_nonexistent_records()
 
-        return self.__write_record_info(record_info)
+    def __del__(self):
+        self._records_db.close()
 
-    def get_records_info(self):
-        records = []
+    @property
+    def records_db(self) -> TinyDB:
+        return self._records_db
+
+    @property
+    def records_model(self) -> QtCore.QAbstractTableModel:
+        return self._records_model
+
+    def add_record(self, record):
+        if not os.path.exists(self._records_dir):
+            os.makedirs(self._records_dir)
+
+        self._records_model.beginResetModel()
+
+        self._records_db.insert({
+            'filename': record.filename,
+            'duration': record.duration,
+            'timestamp': record.timestamp,
+        })
+
+        self._records_model.endResetModel()
+
+    def remove_record(self, record_info: dict):
+        fname = record_info['filename']
+
+        if os.path.exists(fname):
+            os.remove(fname)
+
+        self._records_model.beginResetModel()
+        query = Query()
+        self._records_db.remove(query.filename == fname)
+        self._records_model.endResetModel()
+
+    def _remove_nonexistent_records(self):
         removed = []
 
         for record in self._records_db:
             filename = record['filename']
 
-            if os.path.exists(helperutils.get_filename_with_extension(filename)):
-                records.append(record)
-            else:
-                removed.append(record['filename'])
+            if not os.path.exists(filename):
+                removed.append(filename)
 
-        r = tinydb.Query()
-        self._records_db.remove(r.filename.one_of(removed))
-
-        records.sort(key=lambda x: x['timestamp'])
-        records.reverse()
-
-        return records
-
-    def remove_record(self, record_info: dict):
-        file_name = record_info['filename']
-        fname = helperutils.get_filename_with_extension(file_name)
-        if os.path.exists(fname):
-            os.remove(fname)
-
-        r = tinydb.Query()
-        self._records_db.remove(r.filename == file_name)
-
-    def read_settings(self, settings: QtCore.QSettings):
-        with helperutils.qsettings_group(settings)('Path'):
-            self.__records_dir = settings.value(
-                'RecordsDirectory', self.__default_records_dir)
-
-    def write_settings(self, settings: QtCore.QSettings):
-        with helperutils.qsettings_group(settings)('Path'):
-            if not settings.contains('RecordsDirectory'):
-                settings.setValue('RecordsDirectory', self.__records_dir)
-
-    def __write_record_info(self, record_info):
-        record_timestamp = int(time.time())
-        record_date = datetime.datetime.fromtimestamp(record_timestamp)
-        record_date_str = record_date.strftime(f'{DATETIME_FORMAT}')
-
-        record_file_name = f'voice-{record_date_str}'
-        record_file_path = os.path.join(self.__records_dir, record_file_name)
-
-        self.__encode(record_info['filename'], record_file_path)
-        os.remove(record_info['filename'])
-
-        record = {
-            'filename': record_file_path,
-            'duration': record_info['duration'],
-            'timestamp': record_timestamp,
-        }
-
-        self._records_db.insert(record)
-
-        return record
-
-    def __encode(self, wavfname, outfname, fmt=ENCODE_FORMAT):
-        inp = av.open(wavfname, 'r')
-        out = av.open(outfname + fmt[1], 'w')
-
-        ostream = out.add_stream(fmt[0])
-
-        with wave.open(wavfname, 'rb') as wav:
-            num_frames = wav.getnframes()
-        num_encoded_frames = 0
-
-        for frame in inp.decode(audio=0):
-            frame.pts = None
-
-            for p in ostream.encode(frame):
-                out.mux(p)
-
-            num_encoded_frames += frame.samples
-            self.encode_progress.emit(int(100 * num_encoded_frames / num_frames))
-
-        for p in ostream.encode(None):
-            out.mux(p)
-
-        out.close()
+        if removed:
+            self._records_model.beginResetModel()
+            query = Query()
+            self._records_db.remove(query.filename.one_of(removed))
+            self._records_model.endResetModel()

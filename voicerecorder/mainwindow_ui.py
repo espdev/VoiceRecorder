@@ -2,11 +2,12 @@
 
 # Form implementation generated from reading ui file 'mainwindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.8.2
+# Created by: PyQt5 UI code generator 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -68,17 +69,11 @@ class Ui_MainWindow(object):
         self.gboxRecords.setObjectName("gboxRecords")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.gboxRecords)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.tableRecords = QtWidgets.QTableWidget(self.gboxRecords)
-        self.tableRecords.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.tableRecords.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.tableRecords.setObjectName("tableRecords")
-        self.tableRecords.setColumnCount(2)
-        self.tableRecords.setRowCount(0)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableRecords.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableRecords.setHorizontalHeaderItem(1, item)
-        self.horizontalLayout_2.addWidget(self.tableRecords)
+        self.recordsTableView = QtWidgets.QTableView(self.gboxRecords)
+        self.recordsTableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.recordsTableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.recordsTableView.setObjectName("recordsTableView")
+        self.horizontalLayout_2.addWidget(self.recordsTableView)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.pbPlayRecords = QtWidgets.QPushButton(self.gboxRecords)
@@ -120,11 +115,8 @@ class Ui_MainWindow(object):
         self.pbRecordingPause.setText(_translate("MainWindow", "Pause"))
         self.labelRecordDuration.setText(_translate("MainWindow", "0:00:00"))
         self.gboxRecords.setTitle(_translate("MainWindow", "Records"))
-        item = self.tableRecords.horizontalHeaderItem(0)
-        item.setText(_translate("MainWindow", "Date"))
-        item = self.tableRecords.horizontalHeaderItem(1)
-        item.setText(_translate("MainWindow", "Duration"))
         self.pbPlayRecords.setText(_translate("MainWindow", "Play"))
         self.pbRemoveRecords.setText(_translate("MainWindow", "Remove"))
+
 
 from . import mainwindow_rc

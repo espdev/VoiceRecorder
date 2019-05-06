@@ -6,17 +6,23 @@ VoiceRecorder is a simple application for voice recording
 """
 
 import sys
+
 from PyQt5 import QtWidgets
 
 from voicerecorder import __app_name__
 from voicerecorder import __version__
 
-from voicerecorder import helperutils
 from voicerecorder import mainwindow
 
 
+def set_exception_hook():
+    def _exception_hook(exctype, value, traceback):
+        sys.__excepthook__(exctype, value, traceback)
+    sys.excepthook = _exception_hook
+
+
 def main():
-    helperutils.set_exception_hook()
+    set_exception_hook()
 
     app = QtWidgets.QApplication(sys.argv)
 
