@@ -4,7 +4,7 @@ import datetime
 import typing as t
 
 
-def format_duration(duration: int):
+def format_duration(duration: int) -> str:
     duration_delta = datetime.timedelta(milliseconds=duration)
 
     mm, ss = divmod(duration_delta.seconds, 60)
@@ -15,5 +15,5 @@ def format_duration(duration: int):
     return s
 
 
-def format_timestamp(timestamp: t.Union[int, float], fmt: str):
+def format_timestamp(timestamp: t.Union[int, float], fmt: str) -> str:
     return datetime.datetime.fromtimestamp(timestamp).strftime(f'{fmt}')
