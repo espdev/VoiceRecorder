@@ -10,9 +10,7 @@ def format_duration(duration: int) -> str:
     mm, ss = divmod(duration_delta.seconds, 60)
     hh, mm = divmod(mm, 60)
 
-    s = "%d:%02d:%02d" % (hh, mm, ss)
-
-    return s
+    return f"{hh:d}:{mm:02d}:{ss:02d}"
 
 
 def format_timestamp(timestamp: t.Union[int, float], fmt: str) -> str:
