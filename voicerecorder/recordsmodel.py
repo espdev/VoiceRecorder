@@ -7,6 +7,7 @@ import tinydb
 from PyQt5.QtCore import (
     Qt,
     QObject,
+    QSortFilterProxyModel,
     QAbstractTableModel,
     QModelIndex,
     QVariant,
@@ -16,14 +17,30 @@ from . import utils
 from . import settings
 
 
+COLUMN_DATE = 0
+COLUMN_DURATION = 1
+
+
+class RecordsSortProxyModel(QSortFilterProxyModel):
+
+    def lessThan(self, left: QModelIndex, right: QModelIndex) -> bool:
+        left_record = self.sourceModel().data(left, Qt.UserRole)
+        right_record = self.sourceModel().data(right, Qt.UserRole)
+
+        if left.column() == COLUMN_DATE:
+            return left_record['timestamp'] < right_record['timestamp']
+
+        elif left.column() == COLUMN_DURATION:
+            return left_record['duration'] < right_record['duration']
+
+        return False
+
+
 class RecordsTableModel(QAbstractTableModel):
     """Records table model
 
     The model using TinyDB for storing records.
     """
-
-    COLUMN_DATE = 0
-    COLUMN_DURATION = 1
 
     def __init__(self, records_db: tinydb.TinyDB, parent: t.Optional[QObject] = None):
         super().__init__(parent)
@@ -42,8 +59,8 @@ class RecordsTableModel(QAbstractTableModel):
 
         if orientation == Qt.Horizontal:
             return {
-                self.COLUMN_DATE: self.tr('Date'),
-                self.COLUMN_DURATION: self.tr('Duration'),
+                COLUMN_DATE: self.tr('Date'),
+                COLUMN_DURATION: self.tr('Duration'),
             }.get(section, QVariant())
 
         if orientation == Qt.Vertical:
@@ -71,8 +88,8 @@ class RecordsTableModel(QAbstractTableModel):
             record_duration = utils.format_duration(record['duration'])
 
             return {
-                self.COLUMN_DATE: record_date,
-                self.COLUMN_DURATION: record_duration,
+                COLUMN_DATE: record_date,
+                COLUMN_DURATION: record_duration,
             }.get(column, QVariant())
 
         if role == Qt.UserRole:

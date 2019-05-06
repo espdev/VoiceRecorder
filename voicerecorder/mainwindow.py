@@ -66,6 +66,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._records_manager = recordsmanager.RecordsManager(parent=self)
 
         self.ui.recordsTableView.setModel(self._records_manager.records_model)
+        self.ui.recordsTableView.setSortingEnabled(True)
 
         self.ui.recordsTableView.horizontalHeader().setSectionResizeMode(
             0, QtWidgets.QHeaderView.Stretch)
@@ -206,7 +207,5 @@ class MainWindow(QtWidgets.QMainWindow):
         indexes = self.ui.recordsTableView.selectionModel().selectedRows(0)
         records = [index.data(QtCore.Qt.UserRole) for index in indexes]
 
-        for record in records:
-            self._records_manager.remove_record(record)
-
+        self._records_manager.remove_records(records)
         self._on_change_selected_records()
