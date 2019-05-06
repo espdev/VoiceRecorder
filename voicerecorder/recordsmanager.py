@@ -62,8 +62,7 @@ class RecordsManager(QtCore.QObject):
             os.remove(fname)
 
         self._records_model.beginResetModel()
-        query = Query()
-        self._records_db.remove(query.filename == fname)
+        self._records_db.remove(Query().filename == fname)
         self._records_model.endResetModel()
 
     def _remove_nonexistent_records(self):
@@ -77,6 +76,5 @@ class RecordsManager(QtCore.QObject):
 
         if removed:
             self._records_model.beginResetModel()
-            query = Query()
-            self._records_db.remove(query.filename.one_of(removed))
+            self._records_db.remove(Query().filename.one_of(removed))
             self._records_model.endResetModel()
