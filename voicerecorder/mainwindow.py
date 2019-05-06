@@ -159,8 +159,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.pbRecordingStartAndStop.setIcon(QtGui.QIcon(':icons/stop'))
 
     def _stop_recording(self):
-        QtWidgets.QApplication.setOverrideCursor(
-            QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
         try:
             self._audio_recorder.stop()
