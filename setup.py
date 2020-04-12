@@ -1,31 +1,28 @@
 # -*- coding: utf-8 -*-
 
-import sys
-from cx_Freeze import setup, Executable
+from setuptools import setup
 
-from voicerecorder import __version__
-
-base = None
-
-if sys.platform == 'win32':
-    base = 'Win32GUI'
-
-options = {
-    'build_exe': {
-        'includes': ['atexit', 'PyQt5.QtNetwork', 'fractions'],
-        'zip_include_packages': '*',
-        'zip_exclude_packages': ['av'],
-    }
-}
-
-executables = [
-    Executable('VoiceRecorder.pyw', base=base)
-]
 
 setup(
     name='VoiceRecorder',
-    version=__version__,
+    version='0.5.0',
+    packages=['voicerecorder'],
+    url='',
+    license='',
+    author='Eugene Prilepin',
+    author_email='',
     description='VoiceRecorder is a simple application for voice/audio record',
-    options=options,
-    executables=executables,
+    install_requires=[
+        'PyQt5',
+        'tinydb',
+        'av',
+    ],
+    entry_points={
+        'gui_scripts': [
+            'voicerecorder = voicerecorder.__main__:main',
+        ],
+        'console_scripts': [
+            'voicerecorder_console = voicerecorder.__main__:main',
+        ],
+    },
 )
