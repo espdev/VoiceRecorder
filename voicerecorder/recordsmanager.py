@@ -27,7 +27,10 @@ class RecordsManager(QtCore.QObject):
 
         self._records_db = TinyDB(self._settings.get_records_database_path(),
                                   storage=CachingMiddleware(JSONStorage))
-        self._records_model = recordsmodel.RecordsTableModel(self._records_db, parent=self)
+
+        self._records_model = recordsmodel.RecordsTableModel(parent=self)
+        self._records_model.set_records(self._records_db.all())
+
         self._records_sort_proxy_model = recordsmodel.RecordsSortProxyModel(self)
         self._records_sort_proxy_model.setSourceModel(self._records_model)
 
@@ -48,15 +51,13 @@ class RecordsManager(QtCore.QObject):
         if not os.path.exists(self._records_dir):
             os.makedirs(self._records_dir)
 
-        self._records_model.beginResetModel()
-
         self._records_db.insert({
             'filename': record.filename,
             'duration': record.duration,
             'timestamp': record.timestamp,
         })
 
-        self._records_model.endResetModel()
+        self._records_model.set_records(self._records_db.all())
 
     def remove_record(self, record_info: dict):
         fname = record_info['filename']
@@ -64,9 +65,8 @@ class RecordsManager(QtCore.QObject):
         if os.path.exists(fname):
             os.remove(fname)
 
-        self._records_model.beginResetModel()
         self._records_db.remove(Query().filename == fname)
-        self._records_model.endResetModel()
+        self._records_model.set_records(self._records_db.all())
 
     def remove_records(self, records: t.List[dict]):
         fnames = [record['filename'] for record in records]
@@ -75,9 +75,8 @@ class RecordsManager(QtCore.QObject):
             if os.path.exists(fname):
                 os.remove(fname)
 
-        self._records_model.beginResetModel()
         self._records_db.remove(Query().filename.one_of(fnames))
-        self._records_model.endResetModel()
+        self._records_model.set_records(self._records_db.all())
 
     def _remove_nonexistent_records(self):
         fnames = []
@@ -89,6 +88,5 @@ class RecordsManager(QtCore.QObject):
                 fnames.append(filename)
 
         if fnames:
-            self._records_model.beginResetModel()
             self._records_db.remove(Query().filename.one_of(fnames))
-            self._records_model.endResetModel()
+            self._records_model.set_records(self._records_db.all())

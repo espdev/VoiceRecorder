@@ -2,8 +2,6 @@
 
 import typing as t
 
-import tinydb
-
 from PyQt5.QtCore import (
     Qt,
     QObject,
@@ -42,13 +40,21 @@ class RecordsTableModel(QAbstractTableModel):
     The model using TinyDB for storing records.
     """
 
-    def __init__(self, records_db: tinydb.TinyDB, parent: t.Optional[QObject] = None):
+    def __init__(self, parent: t.Optional[QObject] = None):
         super().__init__(parent)
-        self._records_db = records_db
+        self._records = []
+        self._record_count = 0
         self._settings = settings.Settings(self)
+        self._table_dt_format = self._settings.get_record_table_datetime_format()
+
+    def set_records(self, records: list):
+        self.beginResetModel()
+        self._records = records
+        self._record_count = len(records)
+        self.endResetModel()
 
     def rowCount(self, parent_index: QModelIndex = QModelIndex()) -> int:
-        return len(self._records_db)
+        return self._record_count
 
     def columnCount(self, parent_index: QModelIndex = QModelIndex()) -> int:
         return 2
@@ -75,16 +81,14 @@ class RecordsTableModel(QAbstractTableModel):
         row = index.row()
         column = index.column()
 
-        records = self._records_db.all()
-
-        if row < 0 or row >= len(records):
+        if row < 0 or row >= self._record_count:
             return QVariant()
 
-        record = records[row]
+        record = self._records[row]
 
         if role == Qt.DisplayRole:
             record_date = utils.format_timestamp(
-                record['timestamp'], self._settings.get_record_table_datetime_format())
+                record['timestamp'], self._table_dt_format)
             record_duration = utils.format_duration(record['duration'])
 
             return {
