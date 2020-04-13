@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import pathlib
 from setuptools import setup
+
+
+ROOT_DIR = pathlib.Path(__file__).parent
+
+
+def get_version():
+    about = {}
+    ver_mod = ROOT_DIR / 'voicerecorder' / '_version.py'
+    exec(ver_mod.read_text(), about)
+    return about['__version__']
 
 
 setup(
     name='VoiceRecorder',
-    version='0.5.0',
+    version=get_version(),
     packages=['voicerecorder'],
     url='',
     license='',

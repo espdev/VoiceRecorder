@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
 
+from ._version import __version__  # noqa
+
 __app_name__ = 'VoiceRecorder'
-__version__ = '0.5.0'
