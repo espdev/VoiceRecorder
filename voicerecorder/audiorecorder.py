@@ -168,5 +168,7 @@ class AudioRecorder(QtCore.QObject):
         for p in ostream.encode(None):
             out.mux(p)
 
+        inp.close()
         out.close()
+
         self.encoding_finished.emit()
