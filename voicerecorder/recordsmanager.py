@@ -37,7 +37,7 @@ class RecordsManager(QtCore.QObject):
         self._remove_nonexistent_records()
 
     def __del__(self):
-        self._records_db.close()
+        self.close()
 
     @property
     def records_db(self) -> TinyDB:
@@ -77,6 +77,9 @@ class RecordsManager(QtCore.QObject):
 
         self._records_db.remove(Query().filename.one_of(fnames))
         self._records_model.set_records(self._records_db.all())
+
+    def close(self):
+        self._records_db.close()
 
     def _remove_nonexistent_records(self):
         fnames = []
