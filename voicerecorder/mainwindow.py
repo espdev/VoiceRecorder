@@ -88,6 +88,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._read_settings()
 
     def closeEvent(self, event):
+        self._records_manager.close()
         self._write_settings()
 
     def eventFilter(self, obj, event: QtGui.QKeyEvent):
