@@ -51,8 +51,13 @@ class AudioRecord(QtCore.QObject):
         wav_fname = self._recorder.outputLocation().toLocalFile()
         out_fname = os.path.splitext(wav_fname)[0] + ext
 
-        encoder(wav_fname, out_fname, codec)
-        os.unlink(wav_fname)
+        if codec.lower() in ('lpcm', 'pcm'):
+            # Save the audio record without encoding
+            if wav_fname != out_fname:
+                shutil.move(wav_fname, out_fname)
+        else:
+            encoder(wav_fname, out_fname, codec)
+            os.unlink(wav_fname)
 
         datetime_format = self._settings.get_record_filename_datetime_format()
         record_date_str = utils.format_timestamp(self.timestamp, datetime_format)
@@ -61,7 +66,8 @@ class AudioRecord(QtCore.QObject):
         fname = f'record-{record_date_str}{ext}'
         self._filename = os.path.join(self._settings.get_records_directory(), fname)
 
-        shutil.move(out_fname, self.filename)
+        if out_fname != self.filename:
+            shutil.move(out_fname, self.filename)
 
     def _update(self, duration):
         self._duration = duration
