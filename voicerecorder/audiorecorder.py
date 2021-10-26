@@ -138,11 +138,11 @@ class AudioRecorder(QtCore.QObject):
         s = QtMultimedia.QAudioEncoderSettings()
 
         s.setCodec('')
-        s.setSampleRate(48000)
-        s.setBitRate(128000)
-        s.setChannelCount(2)
-        s.setQuality(QtMultimedia.QMultimedia.HighQuality)
-        s.setEncodingMode(QtMultimedia.QMultimedia.ConstantQualityEncoding)
+        s.setSampleRate(self._settings.get_sample_rate())
+        s.setBitRate(self._settings.get_bit_rate())
+        s.setChannelCount(self._settings.get_channel_count())
+        s.setQuality(QtMultimedia.QMultimedia.EncodingQuality.HighQuality)
+        s.setEncodingMode(QtMultimedia.QMultimedia.EncodingMode.ConstantQualityEncoding)
 
         self._recorder.setEncodingSettings(
             s, QtMultimedia.QVideoEncoderSettings(), '')
