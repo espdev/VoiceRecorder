@@ -17,8 +17,6 @@ class RecordsManager(QtCore.QObject):
     """Manages records
     """
 
-    encode_progress = QtCore.pyqtSignal(int)
-
     def __init__(self, parent: t.Optional[QtCore.QObject] = None):
         super().__init__(parent)
 
