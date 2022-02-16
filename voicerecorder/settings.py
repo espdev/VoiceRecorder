@@ -81,11 +81,8 @@ class Settings(metaclass=SettingsMeta):
 
         return codec, ext
 
-    def get_sample_rate(self):
-        return int(self.set_default('Audio', 'SampleRate', 48000))
-
-    def get_bit_rate(self):
-        return int(self.set_default('Audio', 'BitRate', 128000))
+    def get_quality(self):
+        return int(self.set_default('Audio', 'Quality', 2))
 
     def get_channel_count(self):
         return int(self.set_default('Audio', 'ChannelCount', 2))
