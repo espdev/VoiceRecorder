@@ -24,7 +24,8 @@ class RecordsManager(QtCore.QObject):
         self._records_dir = self._settings.get_records_directory()
 
         self._records_db = TinyDB(self._settings.get_records_database_path(),
-                                  storage=CachingMiddleware(JSONStorage))
+                                  storage=CachingMiddleware(JSONStorage),
+                                  create_dirs=True)
 
         self._records_model = recordsmodel.RecordsTableModel(parent=self)
         self._records_model.set_records(self._records_db.all())
