@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-
-import datetime
 import typing as t
+import datetime
 
 
 def format_duration(duration: int) -> str:
@@ -10,7 +8,7 @@ def format_duration(duration: int) -> str:
     mm, ss = divmod(duration_delta.seconds, 60)
     hh, mm = divmod(mm, 60)
 
-    return f"{hh:d}:{mm:02d}:{ss:02d}"
+    return f'{hh:d}:{mm:02d}:{ss:02d}'
 
 
 def format_timestamp(timestamp: t.Union[int, float], fmt: str) -> str:

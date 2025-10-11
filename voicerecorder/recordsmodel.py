@@ -1,26 +1,21 @@
-# -*- coding: utf-8 -*-
-
 import typing as t
 
 from PyQt5.QtCore import (
-    Qt,
-    QObject,
-    QSortFilterProxyModel,
     QAbstractTableModel,
     QModelIndex,
+    QObject,
+    QSortFilterProxyModel,
+    Qt,
     QVariant,
 )
 
-from . import utils
-from . import settings
-
+from . import settings, utils
 
 COLUMN_DATE = 0
 COLUMN_DURATION = 1
 
 
 class RecordsSortProxyModel(QSortFilterProxyModel):
-
     def lessThan(self, left: QModelIndex, right: QModelIndex) -> bool:
         left_record = self.sourceModel().data(left, Qt.UserRole)
         right_record = self.sourceModel().data(right, Qt.UserRole)
@@ -87,8 +82,7 @@ class RecordsTableModel(QAbstractTableModel):
         record = self._records[row]
 
         if role == Qt.DisplayRole:
-            record_date = utils.format_timestamp(
-                record['timestamp'], self._table_dt_format)
+            record_date = utils.format_timestamp(record['timestamp'], self._table_dt_format)
             record_duration = utils.format_duration(record['duration'])
 
             return {

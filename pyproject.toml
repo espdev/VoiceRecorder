@@ -15,15 +15,72 @@ dependencies = [
 [project.gui-scripts]
 voicerecorder = "voicerecorder.main:main"
 
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.0",
+    "poethepoet>=0.37.0",
+]
+
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+
 [tool.uv]
 package = true
+
 
 [tool.hatch.build.targets.sdist]
 include = ["voicerecorder"]
 
 [tool.hatch.build.targets.wheel]
 include = ["voicerecorder"]
+
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+exclude = [
+    ".ruff_cache",
+    ".cache",
+    ".venv",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",       # All pycodestyle errors
+    "W",       # All pycodestyle warnings
+    "F",       # All Pyflakes errors
+    "A",       # All flake8-builtins
+    "Q",       # Quotes
+    "I",       # Sort imports
+    "T201",    # print found
+    "T203",    # pprint found
+]
+ignore = [
+    "A002",    # Shadowing builtin in function arguments
+    "A004",    # Import `blablabla` is shadowing a Python builtin
+]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "single"
+
+[tool.ruff.lint.isort]
+force-to-top = ["typing"]
+force-sort-within-sections = true
+
+[tool.ruff.format]
+quote-style = "single"
+
+
+[tool.poe.tasks]
+check-format = "ruff format . --check"
+check-lint = "ruff check ."
+check = ["check-format", "check-lint"]
+
+fix-format = "ruff format ."
+fix-lint = "ruff check --fix ."
+fix = ["fix-format", "fix-lint"]

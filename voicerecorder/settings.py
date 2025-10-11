@@ -1,6 +1,6 @@
-import os
-import contextlib
 import typing as t
+import contextlib
+import os
 
 from PyQt5 import QtCore
 
@@ -27,12 +27,10 @@ class SettingsMeta(type):
 
 
 class Settings(metaclass=SettingsMeta):
-    """Stores and manages the application settings
-    """
+    """Stores and manages the application settings"""
 
     def __init__(self, parent: QtCore.QObject = None):
-        self._filename = os.path.normpath(
-            os.path.join(self.get_app_config_dir(), APP_NAME + '.ini'))
+        self._filename = os.path.normpath(os.path.join(self.get_app_config_dir(), APP_NAME + '.ini'))
 
         self._settings = QtCore.QSettings(self._filename, QtCore.QSettings.IniFormat, parent)
         self._settings_group = _qsettings_group_factory(self._settings)
@@ -51,8 +49,7 @@ class Settings(metaclass=SettingsMeta):
 
     @staticmethod
     def get_app_config_dir():
-        return QtCore.QStandardPaths.standardLocations(
-            QtCore.QStandardPaths.AppConfigLocation)[0]
+        return QtCore.QStandardPaths.standardLocations(QtCore.QStandardPaths.AppConfigLocation)[0]
 
     def set_default(self, group: str, key: str, value: t.Any):
         with self.group(group) as s:
@@ -63,8 +60,7 @@ class Settings(metaclass=SettingsMeta):
         return value
 
     def get_records_directory(self):
-        documents_dir = QtCore.QStandardPaths.standardLocations(
-            QtCore.QStandardPaths.DocumentsLocation)[0]
+        documents_dir = QtCore.QStandardPaths.standardLocations(QtCore.QStandardPaths.DocumentsLocation)[0]
         default_records_dir = os.path.normpath(os.path.join(documents_dir, APP_NAME))
         return os.path.normpath(self.set_default('Record', 'RecordsDirectory', default_records_dir))
 
@@ -86,8 +82,7 @@ class Settings(metaclass=SettingsMeta):
         return int(self.set_default('Audio', 'ChannelCount', 2))
 
     def get_records_database_path(self):
-        default_path = os.path.normpath(
-            os.path.join(self.get_app_config_dir(), 'records_db.json'))
+        default_path = os.path.normpath(os.path.join(self.get_app_config_dir(), 'records_db.json'))
         return os.path.normpath(self.set_default('Record', 'RecordsDatabasePath', default_path))
 
     def get_record_filename_datetime_format(self):

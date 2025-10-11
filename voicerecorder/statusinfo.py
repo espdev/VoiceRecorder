@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
 import math
 
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class StatusInfo(QtWidgets.QWidget):
-    """
-    """
+    """ """
 
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -14,8 +12,7 @@ class StatusInfo(QtWidgets.QWidget):
         self._status_icon = QtWidgets.QLabel()
         self._status_icon.setPixmap(QtGui.QPixmap(':icons/rec'))
 
-        self._status_icon_opacity = QtWidgets.QGraphicsOpacityEffect(
-            self._status_icon)
+        self._status_icon_opacity = QtWidgets.QGraphicsOpacityEffect(self._status_icon)
         self._status_icon_opacity.setOpacity(1.0)
 
         self._status_icon.setGraphicsEffect(self._status_icon_opacity)
@@ -78,8 +75,7 @@ class StatusInfo(QtWidgets.QWidget):
         QtWidgets.QApplication.processEvents()
 
     def _animate_record_icon(self):
-        opacity = round(
-            self._status_icon_opacity.opacity() - self._opacity_dec, 2)
+        opacity = round(self._status_icon_opacity.opacity() - self._opacity_dec, 2)
 
         if math.isclose(opacity, 0.0) or math.isclose(opacity, 1.0):
             self._opacity_dec = -self._opacity_dec
