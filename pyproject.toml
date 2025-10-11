@@ -1,0 +1,29 @@
+[project]
+name = "voicerecorder"
+version = "0.5.3"
+description = "VoiceRecorder is a simple application for voice/audio record"
+readme = "README.md"
+
+requires-python = ">=3.12"
+
+dependencies = [
+    "pyqt5>=5.15.11",
+    "av>=15.1.0",
+    "tinydb>=4.8.2",
+]
+
+[project.gui-scripts]
+voicerecorder = "voicerecorder.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.sdist]
+include = ["voicerecorder"]
+
+[tool.hatch.build.targets.wheel]
+include = ["voicerecorder"]
