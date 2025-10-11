@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import os
 import contextlib
 import typing as t
 
 from PyQt5 import QtCore
 
-from . import __app_name__
+from .constants import APP_NAME
 
 
 def _qsettings_group_factory(settings: QtCore.QSettings):
@@ -34,7 +32,7 @@ class Settings(metaclass=SettingsMeta):
 
     def __init__(self, parent: QtCore.QObject = None):
         self._filename = os.path.normpath(
-            os.path.join(self.get_app_config_dir(), __app_name__ + '.ini'))
+            os.path.join(self.get_app_config_dir(), APP_NAME + '.ini'))
 
         self._settings = QtCore.QSettings(self._filename, QtCore.QSettings.IniFormat, parent)
         self._settings_group = _qsettings_group_factory(self._settings)
@@ -67,7 +65,7 @@ class Settings(metaclass=SettingsMeta):
     def get_records_directory(self):
         documents_dir = QtCore.QStandardPaths.standardLocations(
             QtCore.QStandardPaths.DocumentsLocation)[0]
-        default_records_dir = os.path.normpath(os.path.join(documents_dir, __app_name__))
+        default_records_dir = os.path.normpath(os.path.join(documents_dir, APP_NAME))
         return os.path.normpath(self.set_default('Record', 'RecordsDirectory', default_records_dir))
 
     def get_temporary_records_directory(self):

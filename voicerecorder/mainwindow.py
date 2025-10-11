@@ -1,13 +1,10 @@
-# -*- coding: utf-8 -*-
-
 import functools
 
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5 import QtWidgets
 
-from . import __app_name__
-from . import __version__
+from .constants import APP_NAME, APP_VERSION
 
 from . import settings
 from . import recordsmanager
@@ -15,7 +12,6 @@ from . import audiorecorder
 from . import audiolevel
 from . import statusinfo
 from . import utils
-
 from . import mainwindow_ui
 
 
@@ -48,7 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
         status_bar: QtWidgets.QStatusBar = self.statusBar()
         status_bar.addWidget(self._recording_status_info)
 
-        self.setWindowTitle(f'{__app_name__} - {__version__}')
+        self.setWindowTitle(f'{APP_NAME} - {APP_VERSION}')
         self.ui.labelRecordDuration.setVisible(False)
 
         self._settings = settings.Settings(self)

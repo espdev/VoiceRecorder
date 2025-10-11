@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-
 """
 VoiceRecorder is a simple application for voice recording
 
 """
 
 import sys
-from voicerecorder.__main__ import main
+from voicerecorder.main import main
 
 
 if __name__ == '__main__':
