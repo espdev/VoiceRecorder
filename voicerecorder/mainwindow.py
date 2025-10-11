@@ -1,23 +1,13 @@
 import functools
 
-from PyQt5 import QtCore
-from PyQt5 import QtGui
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
+from . import audiolevel, audiorecorder, mainwindow_ui, recordsmanager, settings, statusinfo, utils
 from .constants import APP_NAME, APP_VERSION
-
-from . import settings
-from . import recordsmanager
-from . import audiorecorder
-from . import audiolevel
-from . import statusinfo
-from . import utils
-from . import mainwindow_ui
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    """Application MainWindow class
-    """
+    """Application MainWindow class"""
 
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -64,12 +54,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.recordsTableView.setModel(self._records_manager.records_model)
         self.ui.recordsTableView.setSortingEnabled(True)
 
-        self.ui.recordsTableView.horizontalHeader().setSectionResizeMode(
-            0, QtWidgets.QHeaderView.Stretch)
-        self.ui.recordsTableView.horizontalHeader().setSectionResizeMode(
-            1, QtWidgets.QHeaderView.ResizeToContents)
-        self.ui.recordsTableView.verticalHeader().setSectionResizeMode(
-            QtWidgets.QHeaderView.ResizeToContents)
+        self.ui.recordsTableView.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        self.ui.recordsTableView.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        self.ui.recordsTableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
         self.ui.recordsTableView.doubleClicked.connect(self._on_play_record)
         self.ui.recordsTableView.selectionModel().selectionChanged.connect(self._on_change_selected_records)

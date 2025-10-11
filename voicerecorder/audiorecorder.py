@@ -1,24 +1,18 @@
-# -*- coding: utf-8 -*-
-
-import os
-import tempfile
-import wave
-import time
-import shutil
 import typing as t
+import os
+import shutil
+import tempfile
+import time
+import wave
 
 import av
+from PyQt5 import QtCore, QtMultimedia
 
-from PyQt5 import QtCore
-from PyQt5 import QtMultimedia
-
-from . import settings
-from . import utils
+from . import settings, utils
 
 
 class AudioRecord(QtCore.QObject):
-    """Stores audio record info
-    """
+    """Stores audio record info"""
 
     def __init__(self, recorder: 'QtMultimedia.QAudioRecorder'):
         super().__init__(recorder)
@@ -82,8 +76,7 @@ class AudioRecord(QtCore.QObject):
 
 
 class AudioRecorder(QtCore.QObject):
-    """Records audio
-    """
+    """Records audio"""
 
     recording_progress = QtCore.pyqtSignal(int)
     encoding_started = QtCore.pyqtSignal()
@@ -142,8 +135,7 @@ class AudioRecorder(QtCore.QObject):
         s.setEncodingMode(QtMultimedia.QMultimedia.EncodingMode.ConstantQualityEncoding)
         s.setQuality(self._settings.get_quality())
 
-        self._recorder.setEncodingSettings(
-            s, QtMultimedia.QVideoEncoderSettings(), '')
+        self._recorder.setEncodingSettings(s, QtMultimedia.QVideoEncoderSettings(), '')
 
     def _encode(self, wav_fname: str, out_fname: str, codec: str):
         self.encoding_started.emit()

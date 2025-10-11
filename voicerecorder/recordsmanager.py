@@ -1,21 +1,16 @@
-# -*- coding: utf-8 -*-
-
-import os
 import typing as t
-
-from tinydb import TinyDB, Query
-from tinydb.storages import JSONStorage
-from tinydb.middlewares import CachingMiddleware
+import os
 
 from PyQt5 import QtCore
+from tinydb import Query, TinyDB
+from tinydb.middlewares import CachingMiddleware
+from tinydb.storages import JSONStorage
 
-from . import settings
-from . import recordsmodel
+from . import recordsmodel, settings
 
 
 class RecordsManager(QtCore.QObject):
-    """Manages records
-    """
+    """Manages records"""
 
     def __init__(self, parent: t.Optional[QtCore.QObject] = None):
         super().__init__(parent)
@@ -23,9 +18,9 @@ class RecordsManager(QtCore.QObject):
         self._settings = settings.Settings(self)
         self._records_dir = self._settings.get_records_directory()
 
-        self._records_db = TinyDB(self._settings.get_records_database_path(),
-                                  storage=CachingMiddleware(JSONStorage),
-                                  create_dirs=True)
+        self._records_db = TinyDB(
+            self._settings.get_records_database_path(), storage=CachingMiddleware(JSONStorage), create_dirs=True
+        )
 
         self._records_model = recordsmodel.RecordsTableModel(parent=self)
         self._records_model.set_records(self._records_db.all())
@@ -50,11 +45,13 @@ class RecordsManager(QtCore.QObject):
         if not os.path.exists(self._records_dir):
             os.makedirs(self._records_dir)
 
-        self._records_db.insert({
-            'filename': record.filename,
-            'duration': record.duration,
-            'timestamp': record.timestamp,
-        })
+        self._records_db.insert(
+            {
+                'filename': record.filename,
+                'duration': record.duration,
+                'timestamp': record.timestamp,
+            }
+        )
 
         self._records_model.set_records(self._records_db.all())
 

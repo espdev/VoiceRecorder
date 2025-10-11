@@ -1,24 +1,14 @@
-# -*- coding: utf-8 -*-
-
-"""
-"""
-
 import array
 
-from PyQt5 import QtWidgets
-from PyQt5 import QtGui
-from PyQt5 import QtCore
-from PyQt5 import QtMultimedia
+from PyQt5 import QtCore, QtGui, QtMultimedia, QtWidgets
 
 
 class AudioBufferProcessor(QtCore.QObject):
-    """
-    """
+    """ """
 
     buffer_processed = QtCore.pyqtSignal(list, str)
 
-    def __init__(self, parent: QtCore.QObject=None,
-                 source: QtMultimedia.QAudioRecorder=None):
+    def __init__(self, parent: QtCore.QObject = None, source: QtMultimedia.QAudioRecorder = None):
         super().__init__(parent)
 
         self._data_type = ''
@@ -53,15 +43,12 @@ class AudioBufferProcessor(QtCore.QObject):
             (QtMultimedia.QAudioFormat.UnSignedInt, 8): 'B',
             (QtMultimedia.QAudioFormat.UnSignedInt, 16): 'H',
             (QtMultimedia.QAudioFormat.UnSignedInt, 32): 'I',
-
             # Signed integer type
             (QtMultimedia.QAudioFormat.SignedInt, 8): 'b',
             (QtMultimedia.QAudioFormat.SignedInt, 16): 'h',
             (QtMultimedia.QAudioFormat.SignedInt, 32): 'i',
-
             # Float type
             (QtMultimedia.QAudioFormat.Float, 32): 'f',
-
         }.get((sample_type, sample_size))
 
         if not buffer_type:
@@ -85,13 +72,11 @@ class AudioBufferProcessor(QtCore.QObject):
 
 
 class AudioLevelsCalculator(QtCore.QObject):
-    """
-    """
+    """ """
 
     levels_calculated = QtCore.pyqtSignal(list)
 
-    def __init__(self, parent: QtCore.QObject=None,
-                 source: QtMultimedia.QAudioRecorder=None):
+    def __init__(self, parent: QtCore.QObject = None, source: QtMultimedia.QAudioRecorder = None):
         super().__init__(parent)
 
         self._levels = []
@@ -99,7 +84,7 @@ class AudioLevelsCalculator(QtCore.QObject):
         self._buffer_processor = AudioBufferProcessor(self, source)
         self._buffer_processor.buffer_processed.connect(self._on_calc_levels)
 
-    def set_source(self, source: QtMultimedia.QAudioRecorder=None):
+    def set_source(self, source: QtMultimedia.QAudioRecorder = None):
         self._buffer_processor.set_source(source)
 
     def levels(self):
@@ -114,22 +99,22 @@ class AudioLevelsCalculator(QtCore.QObject):
                 return value / peak_value
 
             if arr_data_type == 'B':
-                _peak_value = 2 ** 8 - 1
+                _peak_value = 2**8 - 1
                 _calc_level = calc_level_unsigned
             elif arr_data_type == 'H':
-                _peak_value = 2 ** 16 - 1
+                _peak_value = 2**16 - 1
                 _calc_level = calc_level_unsigned
             elif arr_data_type == 'I':
-                _peak_value = 2 ** 32 - 1
+                _peak_value = 2**32 - 1
                 _calc_level = calc_level_unsigned
             elif arr_data_type == 'b':
-                _peak_value = 2 ** 7 - 1
+                _peak_value = 2**7 - 1
                 _calc_level = calc_level_other
             elif arr_data_type == 'h':
-                _peak_value = 2 ** 15 - 1
+                _peak_value = 2**15 - 1
                 _calc_level = calc_level_other
             elif arr_data_type == 'i':
-                _peak_value = 2 ** 31 - 1
+                _peak_value = 2**31 - 1
                 _calc_level = calc_level_other
             elif arr_data_type == 'f':
                 _peak_value = 1.00003
@@ -151,14 +136,12 @@ class AudioLevelsCalculator(QtCore.QObject):
 
 
 class AudioLevelMonitor(QtWidgets.QFrame):
-    """
-    """
+    """ """
 
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
-                           QtWidgets.QSizePolicy.Fixed)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
 
         self._level = 0.0
 
