@@ -1,170 +1,107 @@
-import typing as t
-import os
+from typing import Self
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 import shutil
-import tempfile
 import time
-import wave
 
-import av
-from PyQt5 import QtCore, QtMultimedia
+from PySide6.QtCore import QObject, Signal
+from PySide6.QtMultimedia import (
+    QAudioDevice,
+    QAudioInput,
+    QMediaCaptureSession,
+    QMediaDevices,
+    QMediaFormat,
+    QMediaRecorder,
+)
 
-from . import settings, utils
-
-
-class AudioRecord(QtCore.QObject):
-    """Stores audio record info"""
-
-    def __init__(self, recorder: 'QtMultimedia.QAudioRecorder'):
-        super().__init__(recorder)
-
-        self._settings = settings.Settings(self)
-
-        self._recorder = recorder
-        self._recorder.setOutputLocation(self._make_temporary_wav())
-        self._recorder.durationChanged.connect(self._update)
-
-        self._filename = ''
-        self._duration = 0
-        self._timestamp = -1
-
-    @property
-    def filename(self) -> str:
-        return self._filename
-
-    @property
-    def duration(self) -> int:
-        return self._duration
-
-    @property
-    def timestamp(self) -> int:
-        return self._timestamp
-
-    def save(self, encoder):
-        codec, ext = self._settings.get_audio_format()
-
-        wav_fname = self._recorder.outputLocation().toLocalFile()
-        out_fname = os.path.splitext(wav_fname)[0] + ext
-
-        if codec.lower() in ('lpcm', 'pcm'):
-            # Save the audio record without encoding
-            if wav_fname != out_fname:
-                shutil.move(wav_fname, out_fname)
-        else:
-            encoder(wav_fname, out_fname, codec)
-            os.unlink(wav_fname)
-
-        datetime_format = self._settings.get_record_filename_datetime_format()
-        record_date_str = utils.format_timestamp(self.timestamp, datetime_format)
-
-        _, ext = os.path.splitext(out_fname)
-        fname = f'record-{record_date_str}{ext}'
-        self._filename = os.path.join(self._settings.get_records_directory(), fname)
-
-        if out_fname != self.filename:
-            shutil.move(out_fname, self.filename)
-
-    def _update(self, duration):
-        self._duration = duration
-        self._timestamp = int(time.time())
-
-    def _make_temporary_wav(self):
-        tmp_records_dir = self._settings.get_temporary_records_directory()
-
-        fd, fname = tempfile.mkstemp(prefix='record_', suffix='.wav', dir=tmp_records_dir)
-        os.close(fd)
-        return QtCore.QUrl.fromLocalFile(fname)
+from .settings import Settings
+from .types import ItemInfo
+from .recordsmanager import Record
 
 
-class AudioRecorder(QtCore.QObject):
-    """Records audio"""
+@dataclass
+class AudioInputInfo(ItemInfo[QAudioDevice]):
+    """Audio input with info"""
 
-    recording_progress = QtCore.pyqtSignal(int)
-    encoding_started = QtCore.pyqtSignal()
-    encoding_finished = QtCore.pyqtSignal()
-    encoding_progress = QtCore.pyqtSignal(int)
+    @classmethod
+    def from_audio_input(cls, audio_input: QAudioDevice) -> Self:
+        return cls(
+            item=audio_input,
+            name=audio_input.id().toStdString(),
+            description=audio_input.description(),
+        )
 
-    def __init__(self, parent: t.Optional[QtCore.QObject] = None):
+
+def audio_inputs() -> list[AudioInputInfo]:
+    inputs = []
+    for audio_input in QMediaDevices.audioInputs():
+        inputs.append(AudioInputInfo.from_audio_input(audio_input))
+    return inputs
+
+
+class AudioRecorder(QMediaRecorder):
+    """Audio recorder"""
+
+    recording_finished = Signal(Record)
+
+    def __init__(self, settings: Settings, parent: QObject | None = None) -> None:
         super().__init__(parent)
 
-        self._settings = settings.Settings(self)
+        self._settings = settings
 
-        self._recorder = QtMultimedia.QAudioRecorder(self)
-        self._recorder.durationChanged.connect(lambda d: self.recording_progress.emit(d))
+        self.setQuality(QMediaRecorder.Quality.HighQuality)
+        self.setEncodingMode(QMediaRecorder.EncodingMode.ConstantQualityEncoding)
 
-        self._record = None
-        self._setup_recorder()
+        self._audio_input = QAudioInput(QMediaDevices.defaultAudioInput(), self)
 
-    @property
-    def recorder(self) -> QtMultimedia.QAudioRecorder:
-        return self._recorder
+        self._media_capture_session = QMediaCaptureSession(self)
+        self._media_capture_session.setAudioInput(self._audio_input)
+        self._media_capture_session.setRecorder(self)
 
-    def start(self, audio_input: str = ''):
-        recorder_state = self._recorder.state()
+        self._suffix: str | None = None
 
-        if recorder_state == QtMultimedia.QMediaRecorder.RecordingState:
-            return
-        elif recorder_state == QtMultimedia.QMediaRecorder.PausedState:
-            self._recorder.record()
-            return
+        self.recorderStateChanged.connect(self._handle_state_change)
 
-        self._record = AudioRecord(self._recorder)
+    def audio_input_info(self) -> AudioInputInfo:
+        return AudioInputInfo(
+            item=self._audio_input.device(),
+            name=self._audio_input.device().id().toStdString(),
+            description=self._audio_input.device().description(),
+        )
 
-        self._recorder.setAudioInput(audio_input)
-        self._recorder.record()
+    def set_audio_input(self, device: QAudioDevice) -> None:
+        self._audio_input.deleteLater()
+        self._audio_input = QAudioInput(device, self)
+        self._media_capture_session.setAudioInput(self._audio_input)
 
-    @property
-    def record(self):
-        return self._record
+    def set_audio_format(self, audio_format: QMediaFormat, suffix: str):
+        self.setMediaFormat(audio_format)
+        self._suffix = suffix
 
-    def stop(self) -> t.Optional[AudioRecord]:
-        if self._recorder.state() == QtMultimedia.QMediaRecorder.StoppedState:
-            return
+    def _handle_state_change(self, state: QMediaRecorder.RecorderState) -> None:
+        match state:
+            case QMediaRecorder.RecorderState.StoppedState:
+                self._finish_recording()
 
-        self._recorder.stop()
-        self._record.save(encoder=self._encode)
+    def _finish_recording(self):
+        ts = time.time()
+        datetime_format = self._settings.get_record_filename_format()
+        record_name = datetime.fromtimestamp(ts).strftime(datetime_format)
 
-    def pause(self):
-        if self._recorder.state() == QtMultimedia.QMediaRecorder.RecordingState:
-            self._recorder.pause()
+        record_location = Path(self.actualLocation().toLocalFile())
+        suffix = self._suffix or record_location.suffix
 
-    def _setup_recorder(self):
-        s = QtMultimedia.QAudioEncoderSettings()
+        new_record_location = self._settings.get_records_directory() / f'{record_name}{suffix}'
+        new_record_location.parent.mkdir(parents=True, exist_ok=True)
 
-        s.setCodec('audio/pcm')
-        s.setChannelCount(self._settings.get_channel_count())
-        s.setEncodingMode(QtMultimedia.QMultimedia.EncodingMode.ConstantQualityEncoding)
-        s.setQuality(self._settings.get_quality())
+        if new_record_location != record_location:
+            shutil.move(record_location, new_record_location)
 
-        self._recorder.setEncodingSettings(s, QtMultimedia.QVideoEncoderSettings(), '')
-
-    def _encode(self, wav_fname: str, out_fname: str, codec: str):
-        self.encoding_started.emit()
-
-        inp = av.open(wav_fname, 'r')
-        out = av.open(out_fname, 'w')
-
-        ostream = out.add_stream(codec)
-
-        with wave.open(wav_fname, 'rb') as wav:
-            num_frames = wav.getnframes()
-
-        num_encoded_frames = 0
-
-        for frame in inp.decode(audio=0):
-            frame.pts = None
-
-            for p in ostream.encode(frame):
-                out.mux(p)
-
-            num_encoded_frames += frame.samples
-            progress_value = int(100 * num_encoded_frames / num_frames)
-
-            self.encoding_progress.emit(progress_value)
-
-        for p in ostream.encode(None):
-            out.mux(p)
-
-        inp.close()
-        out.close()
-
-        self.encoding_finished.emit()
+        self.recording_finished.emit(
+            Record(
+                filename=new_record_location.as_posix(),
+                duration=self.duration(),
+                timestamp=int(ts),
+            )
+        )

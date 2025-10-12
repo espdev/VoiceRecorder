@@ -1,119 +1,121 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'mainwindow.ui'
-#
-# Created by: PyQt5 UI code generator 5.12.1
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'mainwindow.ui'
+##
+## Created by: Qt User Interface Compiler version 6.10.0
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QComboBox, QGroupBox,
+    QHBoxLayout, QHeaderView, QLabel, QMainWindow,
+    QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
+    QStatusBar, QTableView, QVBoxLayout, QWidget)
+from . import mainwindow_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName('MainWindow')
-        MainWindow.resize(554, 573)
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(':/icons/mic'), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        if not MainWindow.objectName():
+            MainWindow.setObjectName(u"MainWindow")
+        MainWindow.resize(475, 573)
+        icon = QIcon()
+        icon.addFile(u":/icons/mic", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         MainWindow.setWindowIcon(icon)
-        self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.centralwidget.setObjectName('centralwidget')
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setObjectName('verticalLayout')
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_3.setObjectName('horizontalLayout_3')
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setObjectName('label')
+        self.centralwidget = QWidget(MainWindow)
+        self.centralwidget.setObjectName(u"centralwidget")
+        self.verticalLayout = QVBoxLayout(self.centralwidget)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.label = QLabel(self.centralwidget)
+        self.label.setObjectName(u"label")
+
         self.horizontalLayout_3.addWidget(self.label)
-        self.cmboxAudioInput = QtWidgets.QComboBox(self.centralwidget)
-        self.cmboxAudioInput.setObjectName('cmboxAudioInput')
+
+        self.cmboxAudioInput = QComboBox(self.centralwidget)
+        self.cmboxAudioInput.setObjectName(u"cmboxAudioInput")
+
         self.horizontalLayout_3.addWidget(self.cmboxAudioInput)
+
         self.horizontalLayout_3.setStretch(1, 1)
+
         self.verticalLayout.addLayout(self.horizontalLayout_3)
-        spacerItem = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout.addItem(spacerItem)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName('horizontalLayout')
-        self.pbRecordingStartAndStop = QtWidgets.QPushButton(self.centralwidget)
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(':/icons/record'), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+
+        self.verticalSpacer_2 = QSpacerItem(20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        self.verticalLayout.addItem(self.verticalSpacer_2)
+
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.pbRecordingStartAndStop = QPushButton(self.centralwidget)
+        self.pbRecordingStartAndStop.setObjectName(u"pbRecordingStartAndStop")
+        icon1 = QIcon()
+        icon1.addFile(u":/icons/record", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.pbRecordingStartAndStop.setIcon(icon1)
-        self.pbRecordingStartAndStop.setIconSize(QtCore.QSize(16, 16))
+        self.pbRecordingStartAndStop.setIconSize(QSize(16, 16))
         self.pbRecordingStartAndStop.setCheckable(True)
-        self.pbRecordingStartAndStop.setObjectName('pbRecordingStartAndStop')
+
         self.horizontalLayout.addWidget(self.pbRecordingStartAndStop)
-        self.pbRecordingPause = QtWidgets.QPushButton(self.centralwidget)
+
+        self.pbRecordingPause = QPushButton(self.centralwidget)
+        self.pbRecordingPause.setObjectName(u"pbRecordingPause")
         self.pbRecordingPause.setEnabled(False)
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(':/icons/pause'), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2 = QIcon()
+        icon2.addFile(u":/icons/pause", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.pbRecordingPause.setIcon(icon2)
         self.pbRecordingPause.setCheckable(True)
-        self.pbRecordingPause.setObjectName('pbRecordingPause')
+
         self.horizontalLayout.addWidget(self.pbRecordingPause)
-        spacerItem1 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem1)
-        self.labelRecordDuration = QtWidgets.QLabel(self.centralwidget)
-        self.labelRecordDuration.setObjectName('labelRecordDuration')
-        self.horizontalLayout.addWidget(self.labelRecordDuration)
-        spacerItem2 = QtWidgets.QSpacerItem(10, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem2)
-        self.layoutAudioLevels = QtWidgets.QVBoxLayout()
-        self.layoutAudioLevels.setSpacing(2)
-        self.layoutAudioLevels.setObjectName('layoutAudioLevels')
-        self.horizontalLayout.addLayout(self.layoutAudioLevels)
-        spacerItem3 = QtWidgets.QSpacerItem(0, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem3)
-        self.horizontalLayout.setStretch(5, 1)
+
+        self.horizontalSpacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout.addItem(self.horizontalSpacer)
+
+
         self.verticalLayout.addLayout(self.horizontalLayout)
-        self.gboxRecords = QtWidgets.QGroupBox(self.centralwidget)
-        self.gboxRecords.setObjectName('gboxRecords')
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.gboxRecords)
-        self.horizontalLayout_2.setObjectName('horizontalLayout_2')
-        self.recordsTableView = QtWidgets.QTableView(self.gboxRecords)
-        self.recordsTableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
-        self.recordsTableView.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.recordsTableView.setObjectName('recordsTableView')
+
+        self.gboxRecords = QGroupBox(self.centralwidget)
+        self.gboxRecords.setObjectName(u"gboxRecords")
+        self.horizontalLayout_2 = QHBoxLayout(self.gboxRecords)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.recordsTableView = QTableView(self.gboxRecords)
+        self.recordsTableView.setObjectName(u"recordsTableView")
+        self.recordsTableView.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.recordsTableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+
         self.horizontalLayout_2.addWidget(self.recordsTableView)
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setObjectName('verticalLayout_2')
-        self.pbPlayRecords = QtWidgets.QPushButton(self.gboxRecords)
-        self.pbPlayRecords.setEnabled(False)
-        icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(':/icons/play'), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.pbPlayRecords.setIcon(icon3)
-        self.pbPlayRecords.setObjectName('pbPlayRecords')
-        self.verticalLayout_2.addWidget(self.pbPlayRecords)
-        self.pbRemoveRecords = QtWidgets.QPushButton(self.gboxRecords)
-        self.pbRemoveRecords.setEnabled(False)
-        icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(':/icons/remove'), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.pbRemoveRecords.setIcon(icon4)
-        self.pbRemoveRecords.setObjectName('pbRemoveRecords')
-        self.verticalLayout_2.addWidget(self.pbRemoveRecords)
-        spacerItem4 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_2.addItem(spacerItem4)
-        self.horizontalLayout_2.addLayout(self.verticalLayout_2)
+
+
         self.verticalLayout.addWidget(self.gboxRecords)
+
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 554, 31))
-        self.menubar.setObjectName('menubar')
+        self.menubar = QMenuBar(MainWindow)
+        self.menubar.setObjectName(u"menubar")
+        self.menubar.setGeometry(QRect(0, 0, 475, 22))
         MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName('statusbar')
+        self.statusbar = QStatusBar(MainWindow)
+        self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.pbRecordingStartAndStop.toggled['bool'].connect(self.pbRecordingPause.setEnabled)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.pbRecordingStartAndStop.toggled.connect(self.pbRecordingPause.setEnabled)
+
+        QMetaObject.connectSlotsByName(MainWindow)
+    # setupUi
 
     def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate('MainWindow', 'MainWindow'))
-        self.label.setText(_translate('MainWindow', 'Audio input:'))
-        self.pbRecordingStartAndStop.setText(_translate('MainWindow', 'Record'))
-        self.pbRecordingPause.setText(_translate('MainWindow', 'Pause'))
-        self.labelRecordDuration.setText(_translate('MainWindow', '0:00:00'))
-        self.gboxRecords.setTitle(_translate('MainWindow', 'Records'))
-        self.pbPlayRecords.setText(_translate('MainWindow', 'Play'))
-        self.pbRemoveRecords.setText(_translate('MainWindow', 'Remove'))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"Audio input:", None))
+        self.pbRecordingStartAndStop.setText(QCoreApplication.translate("MainWindow", u"Record", None))
+        self.pbRecordingPause.setText(QCoreApplication.translate("MainWindow", u"Pause", None))
+        self.gboxRecords.setTitle(QCoreApplication.translate("MainWindow", u"Records", None))
+    # retranslateUi
+

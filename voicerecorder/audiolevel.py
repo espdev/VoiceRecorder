@@ -1,26 +1,27 @@
 import array
 
-from PyQt5 import QtCore, QtGui, QtMultimedia, QtWidgets
+from PySide6.QtCore import QObject, QSize, Signal
+from PySide6.QtGui import QColor, QPainter, QPaintEvent, QPalette
+from PySide6.QtMultimedia import QAudioBuffer, QAudioFormat, QMediaRecorder
+from PySide6.QtWidgets import QFrame, QPushButton, QSizePolicy
 
 
-class AudioBufferProcessor(QtCore.QObject):
-    """ """
+class AudioBufferProcessor(QObject):
+    buffer_processed = Signal(list, str)
 
-    buffer_processed = QtCore.pyqtSignal(list, str)
-
-    def __init__(self, parent: QtCore.QObject = None, source: QtMultimedia.QAudioRecorder = None):
+    def __init__(self, parent: QObject | None = None, source: QMediaRecorder | None = None):
         super().__init__(parent)
 
         self._data_type = ''
         self._data = []
 
-        self._probe = QtMultimedia.QAudioProbe(self)
+        self._probe = QAudioProbe(self)
         self._probe.audioBufferProbed.connect(self._on_process_buffer)
 
         if source:
             self.set_source(source)
 
-    def set_source(self, source: QtMultimedia.QAudioRecorder):
+    def set_source(self, source: QMediaRecorder):
         self._probe.setSource(source)
 
     def data_type(self):
@@ -29,7 +30,7 @@ class AudioBufferProcessor(QtCore.QObject):
     def data(self):
         return self._data
 
-    def _on_process_buffer(self, buffer: QtMultimedia.QAudioBuffer):
+    def _on_process_buffer(self, buffer: QAudioBuffer):
         self._data_type = ''
         self._data = []
 
@@ -40,15 +41,15 @@ class AudioBufferProcessor(QtCore.QObject):
 
         buffer_type = {
             # Unsigned integer type
-            (QtMultimedia.QAudioFormat.UnSignedInt, 8): 'B',
-            (QtMultimedia.QAudioFormat.UnSignedInt, 16): 'H',
-            (QtMultimedia.QAudioFormat.UnSignedInt, 32): 'I',
+            (QAudioFormat.UnSignedInt, 8): 'B',
+            (QAudioFormat.UnSignedInt, 16): 'H',
+            (QAudioFormat.UnSignedInt, 32): 'I',
             # Signed integer type
-            (QtMultimedia.QAudioFormat.SignedInt, 8): 'b',
-            (QtMultimedia.QAudioFormat.SignedInt, 16): 'h',
-            (QtMultimedia.QAudioFormat.SignedInt, 32): 'i',
+            (QAudioFormat.SignedInt, 8): 'b',
+            (QAudioFormat.SignedInt, 16): 'h',
+            (QAudioFormat.SignedInt, 32): 'i',
             # Float type
-            (QtMultimedia.QAudioFormat.Float, 32): 'f',
+            (QAudioFormat.Float, 32): 'f',
         }.get((sample_type, sample_size))
 
         if not buffer_type:
@@ -71,12 +72,12 @@ class AudioBufferProcessor(QtCore.QObject):
         self.buffer_processed.emit(self._data, self._data_type)
 
 
-class AudioLevelsCalculator(QtCore.QObject):
+class AudioLevelsCalculator(QObject):
     """ """
 
-    levels_calculated = QtCore.pyqtSignal(list)
+    levels_calculated = Signal(list)
 
-    def __init__(self, parent: QtCore.QObject = None, source: QtMultimedia.QAudioRecorder = None):
+    def __init__(self, parent: QObject | None = None, source: QMediaRecorder | None = None):
         super().__init__(parent)
 
         self._levels = []
@@ -84,7 +85,7 @@ class AudioLevelsCalculator(QtCore.QObject):
         self._buffer_processor = AudioBufferProcessor(self, source)
         self._buffer_processor.buffer_processed.connect(self._on_calc_levels)
 
-    def set_source(self, source: QtMultimedia.QAudioRecorder = None):
+    def set_source(self, source: QMediaRecorder | None = None):
         self._buffer_processor.set_source(source)
 
     def levels(self):
@@ -135,13 +136,13 @@ class AudioLevelsCalculator(QtCore.QObject):
         self.levels_calculated.emit(levels)
 
 
-class AudioLevelMonitor(QtWidgets.QFrame):
+class AudioLevelMonitor(QFrame):
     """ """
 
     def __init__(self, parent=None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
 
         self._level = 0.0
 
@@ -150,16 +151,16 @@ class AudioLevelMonitor(QtWidgets.QFrame):
         self.update()
 
     def sizeHint(self):
-        btn = QtWidgets.QPushButton()
+        btn = QPushButton()
         h = btn.sizeHint().height() / 2.6
-        return QtCore.QSize(100, h)
+        return QSize(100, h)
 
-    def paintEvent(self, event: QtGui.QPaintEvent):
+    def paintEvent(self, event: QPaintEvent):
         width_level = self._level * self.width()
-        windows_color = QtGui.QPalette().window()
-        indicator_color = QtGui.QColor(135, 211, 255)
+        windows_color = QPalette().window()
+        indicator_color = QColor(135, 211, 255)
 
-        p = QtGui.QPainter(self)
+        p = QPainter(self)
 
         p.fillRect(0, 0, width_level, self.height(), indicator_color)
         p.fillRect(width_level, 0, self.width(), self.height(), windows_color)

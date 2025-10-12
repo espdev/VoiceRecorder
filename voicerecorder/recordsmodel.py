@@ -1,12 +1,9 @@
-import typing as t
-
-from PyQt5.QtCore import (
+from PySide6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
     QObject,
     QSortFilterProxyModel,
     Qt,
-    QVariant,
 )
 
 from . import settings, utils
@@ -17,8 +14,8 @@ COLUMN_DURATION = 1
 
 class RecordsSortProxyModel(QSortFilterProxyModel):
     def lessThan(self, left: QModelIndex, right: QModelIndex) -> bool:
-        left_record = self.sourceModel().data(left, Qt.UserRole)
-        right_record = self.sourceModel().data(right, Qt.UserRole)
+        left_record = self.sourceModel().data(left, Qt.ItemDataRole.UserRole)
+        right_record = self.sourceModel().data(right, Qt.ItemDataRole.UserRole)
 
         if left.column() == COLUMN_DATE:
             return left_record['timestamp'] < right_record['timestamp']
@@ -35,12 +32,12 @@ class RecordsTableModel(QAbstractTableModel):
     The model using TinyDB for storing records.
     """
 
-    def __init__(self, parent: t.Optional[QObject] = None):
+    def __init__(self, parent: QObject | None = None):
         super().__init__(parent)
         self._records = []
         self._record_count = 0
         self._settings = settings.Settings(self)
-        self._table_dt_format = self._settings.get_record_table_datetime_format()
+        self._table_dt_format = self._settings.get_record_table_format()
 
     def set_records(self, records: list):
         self.beginResetModel()
@@ -54,43 +51,43 @@ class RecordsTableModel(QAbstractTableModel):
     def columnCount(self, parent_index: QModelIndex = QModelIndex()) -> int:
         return 2
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.DisplayRole) -> t.Any:
-        if role != Qt.DisplayRole:
-            return QVariant()
+    def headerData(self, section: int, orientation: Qt.Orientation, role=Qt.ItemDataRole.DisplayRole):
+        if role != Qt.ItemDataRole.DisplayRole:
+            return None
 
-        if orientation == Qt.Horizontal:
+        if orientation == Qt.Orientation.Horizontal:
             return {
                 COLUMN_DATE: self.tr('Date'),
                 COLUMN_DURATION: self.tr('Duration'),
-            }.get(section, QVariant())
+            }.get(section)
 
-        if orientation == Qt.Vertical:
+        if orientation == Qt.Orientation.Vertical:
             return str(section + 1)
 
-        return QVariant()
+        return None
 
-    def data(self, index: QModelIndex, role: int = Qt.DisplayRole) -> t.Any:
+    def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
-            return QVariant()
+            return None
 
         row = index.row()
         column = index.column()
 
         if row < 0 or row >= self._record_count:
-            return QVariant()
+            return None
 
         record = self._records[row]
 
-        if role == Qt.DisplayRole:
+        if role == Qt.ItemDataRole.DisplayRole:
             record_date = utils.format_timestamp(record['timestamp'], self._table_dt_format)
             record_duration = utils.format_duration(record['duration'])
 
             return {
                 COLUMN_DATE: record_date,
                 COLUMN_DURATION: record_duration,
-            }.get(column, QVariant())
+            }.get(column, None)
 
-        if role == Qt.UserRole:
+        if role == Qt.ItemDataRole.UserRole:
             return record
 
-        return QVariant()
+        return None

@@ -1,31 +1,40 @@
-import typing as t
+from dataclasses import dataclass
 import os
 
-from PyQt5 import QtCore
+from PySide6.QtCore import QObject, QModelIndex
+from PySide6.QtCore import Qt
 from tinydb import Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
-from . import recordsmodel, settings
+from .recordsmodel import RecordsTableModel, RecordsSortProxyModel
+from .settings import Settings
 
 
-class RecordsManager(QtCore.QObject):
+@dataclass
+class Record:
+    filename: str
+    duration: int
+    timestamp: int
+
+
+class RecordsManager(QObject):
     """Manages records"""
 
-    def __init__(self, parent: t.Optional[QtCore.QObject] = None):
+    def __init__(self, settings: Settings, parent: QObject | None = None):
         super().__init__(parent)
 
-        self._settings = settings.Settings(self)
+        self._settings = settings
         self._records_dir = self._settings.get_records_directory()
 
         self._records_db = TinyDB(
             self._settings.get_records_database_path(), storage=CachingMiddleware(JSONStorage), create_dirs=True
         )
 
-        self._records_model = recordsmodel.RecordsTableModel(parent=self)
+        self._records_model = RecordsTableModel(parent=self)
         self._records_model.set_records(self._records_db.all())
 
-        self._records_sort_proxy_model = recordsmodel.RecordsSortProxyModel(self)
+        self._records_sort_proxy_model = RecordsSortProxyModel(self)
         self._records_sort_proxy_model.setSourceModel(self._records_model)
 
         self._remove_nonexistent_records()
@@ -38,10 +47,10 @@ class RecordsManager(QtCore.QObject):
         return self._records_db
 
     @property
-    def records_model(self) -> recordsmodel.RecordsSortProxyModel:
+    def records_model(self) -> RecordsSortProxyModel:
         return self._records_sort_proxy_model
 
-    def add_record(self, record):
+    def add_record(self, record: Record):
         if not os.path.exists(self._records_dir):
             os.makedirs(self._records_dir)
 
@@ -52,7 +61,6 @@ class RecordsManager(QtCore.QObject):
                 'timestamp': record.timestamp,
             }
         )
-
         self._records_model.set_records(self._records_db.all())
 
     def remove_record(self, record_info: dict):
@@ -64,7 +72,8 @@ class RecordsManager(QtCore.QObject):
         self._records_db.remove(Query().filename == fname)
         self._records_model.set_records(self._records_db.all())
 
-    def remove_records(self, records: t.List[dict]):
+    def remove_records(self, indexes: list[QModelIndex]):
+        records = [index.data(Qt.ItemDataRole.UserRole) for index in indexes]
         fnames = [record['filename'] for record in records]
 
         for fname in fnames:
