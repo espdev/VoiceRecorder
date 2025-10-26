@@ -23,16 +23,14 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(f'{APP_NAME} - {APP_VERSION}')
 
         self._settings = Settings(self)
-
         self._status_info = StatusInfo()
         self._audio_format = AudioFormat(self._settings)
+        self._audio_recorder = AudioRecorder(self._settings, self)
+        self._records_manager = RecordsManager(self._settings, self)
 
         status_bar: QStatusBar = self.statusBar()
         status_bar.addWidget(self._status_info)
         status_bar.addPermanentWidget(self._audio_format)
-
-        self._audio_recorder = AudioRecorder(self._settings, self)
-        self._records_manager = RecordsManager(self._settings, self)
 
         self._audio_format.audio_format_changed.connect(self._audio_recorder.set_audio_format)
         audio_format, suffix = self._audio_format.audio_format()
@@ -50,8 +48,8 @@ class MainWindow(QMainWindow):
         self.ui.recordsTableView.doubleClicked.connect(self._on_play_record)
         self.ui.recordsTableView.installEventFilter(self)
 
-        self.ui.pbRecordingStartAndStop.toggled.connect(self._on_start_stop)
-        self.ui.pbRecordingPause.toggled.connect(self._on_pause)
+        self.ui.pbRecordingStartAndStop.toggled.connect(self._on_toggle_recording)
+        self.ui.pbRecordingPause.toggled.connect(self._on_toggle_pause)
 
         self.ui.cmboxAudioInput.currentIndexChanged.connect(self._on_change_audio_input)
 
@@ -71,31 +69,25 @@ class MainWindow(QMainWindow):
             return False
         if event.type() != QEvent.Type.KeyPress:
             return False
-
         if event.key() == Qt.Key.Key_Delete:
             self._remove_selected_records()
             return True
-
         return False
 
-    def _on_start_stop(self, is_checked):
-        pb_title_text = {
-            True: self.tr('Stop'),
-            False: self.tr('Record'),
-        }
+    def _on_toggle_recording(self, is_recording: bool):
+        button_text = self.tr('Stop') if is_recording else self.tr('Record')
 
-        self.ui.pbRecordingStartAndStop.setText(pb_title_text[is_checked])
-        self.ui.cmboxAudioInput.setEnabled(not is_checked)
+        self.ui.pbRecordingStartAndStop.setText(button_text)
+        self.ui.cmboxAudioInput.setDisabled(is_recording)
+        self._audio_format.setDisabled(is_recording)
 
-        if is_checked:
+        if is_recording:
             self._start_recording()
         else:
             self._stop_recording()
 
-        self._audio_format.setEnabled(not is_checked)
-
-    def _on_pause(self, is_checked):
-        if is_checked:
+    def _on_toggle_pause(self, is_paused: bool):
+        if is_paused:
             self._status_info.set_pause_status()
             self._audio_recorder.pause()
         else:
@@ -128,24 +120,15 @@ class MainWindow(QMainWindow):
             self.ui.cmboxAudioInput.addItem(audio_input.description, audio_input.id)
 
     def _read_settings(self):
-        with self._settings.group('UI') as s:
-            self.restoreGeometry(s.value('WindowGeometry', self.saveGeometry()))
-            self.restoreState(s.value('WindowState', self.saveState()))
+        self._settings.restory_window_state(self)
 
-        with self._settings.group('Audio') as s:
-            audio_input_id = s.value('Input', AudioInputInfo.default_audio_input().id)
-
-        index = self.ui.cmboxAudioInput.findData(audio_input_id)
-        if index != -1:
+        audio_input_id = self._settings.get_audio_input_id()
+        if (index := self.ui.cmboxAudioInput.findData(audio_input_id)) != -1:
             self.ui.cmboxAudioInput.setCurrentIndex(index)
 
     def _write_settings(self):
-        with self._settings.group('UI') as s:
-            s.setValue('WindowGeometry', self.saveGeometry())
-            s.setValue('WindowState', self.saveState())
-
-        with self._settings.group('Audio') as s:
-            s.setValue('Input', self.ui.cmboxAudioInput.currentData())
+        self._settings.set_window_state(self)
+        self._settings.set_audio_input_id(self.ui.cmboxAudioInput.currentData())
 
     def _remove_selected_records(self):
         indexes = self.ui.recordsTableView.selectionModel().selectedRows(0)

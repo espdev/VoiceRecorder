@@ -6,7 +6,8 @@ from PySide6.QtCore import (
     Qt,
 )
 
-from . import settings, utils
+from .settings import Settings
+from .utils import format_duration, format_timestamp
 
 COLUMN_DATE = 0
 COLUMN_DURATION = 1
@@ -32,11 +33,12 @@ class RecordsTableModel(QAbstractTableModel):
     The model using TinyDB for storing records.
     """
 
-    def __init__(self, parent: QObject | None = None):
+    def __init__(self, settings: Settings, parent: QObject | None = None):
         super().__init__(parent)
+
+        self._settings = settings
         self._records = []
         self._record_count = 0
-        self._settings = settings.Settings(self)
         self._table_dt_format = self._settings.get_record_table_format()
 
     def set_records(self, records: list):
@@ -79,8 +81,8 @@ class RecordsTableModel(QAbstractTableModel):
         record = self._records[row]
 
         if role == Qt.ItemDataRole.DisplayRole:
-            record_date = utils.format_timestamp(record['timestamp'], self._table_dt_format)
-            record_duration = utils.format_duration(record['duration'])
+            record_date = format_timestamp(record['timestamp'], self._table_dt_format)
+            record_duration = format_duration(record['duration'])
 
             return {
                 COLUMN_DATE: record_date,

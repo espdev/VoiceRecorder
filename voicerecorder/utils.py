@@ -1,4 +1,3 @@
-import typing as t
 import datetime
 
 
@@ -11,5 +10,5 @@ def format_duration(duration: int) -> str:
     return f'{hh:d}:{mm:02d}:{ss:02d}'
 
 
-def format_timestamp(timestamp: t.Union[int, float], fmt: str) -> str:
+def format_timestamp(timestamp: int | float, fmt: str) -> str:
     return datetime.datetime.fromtimestamp(timestamp).strftime(f'{fmt}')

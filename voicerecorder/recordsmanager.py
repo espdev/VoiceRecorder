@@ -27,10 +27,10 @@ class RecordsManager(QObject):
         self._records_dir = self._settings.get_records_directory()
 
         self._records_db = TinyDB(
-            self._settings.get_records_database_path(), storage=CachingMiddleware(JSONStorage), create_dirs=True
+            self._settings.records_db_path(), storage=CachingMiddleware(JSONStorage), create_dirs=True
         )
 
-        self._records_model = RecordsTableModel(parent=self)
+        self._records_model = RecordsTableModel(self._settings, parent=self)
         self._records_model.set_records(self._records_db.all())
 
         self._records_sort_proxy_model = RecordsSortProxyModel(self)
