@@ -1,6 +1,6 @@
 [project]
 name = "voicerecorder"
-version = "0.5.3"
+version = "0.6.0"
 description = "VoiceRecorder is a simple application for voice/audio record"
 readme = "README.md"
 
