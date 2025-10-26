@@ -1,10 +1,7 @@
 ## VoiceRecorder
 
-VoiceRecorder is a simple voice/audio recorder for my wife and for fun.
-
-The program is written in Python 3.6 and PyQt5. [PyAV](https://github.com/mikeboers/PyAV) is used to encode audio files into OGG/Vorbis.
-
-![Screenshot](https://github.com/espdev/VoiceRecorder/blob/master/screenshots/voicerecorder.png)
+VoiceRecorder is a simple voice/audio recorder.
+The program is written in Python and PySide6.
 
 ## Credits
 
