@@ -7,7 +7,15 @@ from PySide6.QtMultimedia import QMediaFormat
 from PySide6.QtWidgets import QHBoxLayout, QLabel, QMenu, QWidget
 
 from .settings import Settings
-from .types import ItemInfo
+
+
+@dataclass
+class ItemInfo[T]:
+    """Generic item with info"""
+
+    item: T
+    name: str
+    description: str
 
 
 @dataclass

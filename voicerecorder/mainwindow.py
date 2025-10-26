@@ -1,13 +1,13 @@
-from pathlib import Path
-
 from PySide6.QtCore import QEvent, QModelIndex, Qt, QUrl
 from PySide6.QtGui import QDesktopServices, QIcon, QKeyEvent
 from PySide6.QtWidgets import QHeaderView, QMainWindow, QStatusBar, QWidget
 
-from . import mainwindow_ui, recordsmanager, settings
 from .audioformat import AudioFormat
-from .audiorecorder import AudioRecorder, audio_inputs
+from .audiorecorder import AudioInputInfo, AudioRecorder, audio_inputs
 from .constants import APP_NAME, APP_VERSION
+from .mainwindow_ui import Ui_MainWindow
+from .recordsmanager import RecordsManager
+from .settings import Settings
 from .statusinfo import StatusInfo
 
 
@@ -17,12 +17,12 @@ class MainWindow(QMainWindow):
     def __init__(self, parent: QWidget | None = None, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self.ui = mainwindow_ui.Ui_MainWindow()
+        self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
         self.setWindowTitle(f'{APP_NAME} - {APP_VERSION}')
 
-        self._settings = settings.Settings(self)
+        self._settings = Settings(self)
 
         self._status_info = StatusInfo()
         self._audio_format = AudioFormat(self._settings)
@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
         status_bar.addPermanentWidget(self._audio_format)
 
         self._audio_recorder = AudioRecorder(self._settings, self)
-        self._records_manager = recordsmanager.RecordsManager(self._settings, self)
+        self._records_manager = RecordsManager(self._settings, self)
 
         self._audio_format.audio_format_changed.connect(self._audio_recorder.set_audio_format)
         audio_format, suffix = self._audio_format.audio_format()
@@ -53,7 +53,9 @@ class MainWindow(QMainWindow):
         self.ui.pbRecordingStartAndStop.toggled.connect(self._on_start_stop)
         self.ui.pbRecordingPause.toggled.connect(self._on_pause)
 
-        self._collect_audioinputs()
+        self.ui.cmboxAudioInput.currentIndexChanged.connect(self._on_change_audio_input)
+
+        self._collect_audio_inputs()
         self._read_settings()
 
     def show(self):
@@ -121,9 +123,9 @@ class MainWindow(QMainWindow):
         self._status_info.set_stop_status()
         self.ui.pbRecordingStartAndStop.setIcon(QIcon(':icons/record'))
 
-    def _collect_audioinputs(self):
-        for ainput in audio_inputs():
-            self.ui.cmboxAudioInput.addItem(ainput.description, ainput.name)
+    def _collect_audio_inputs(self):
+        for audio_input in audio_inputs():
+            self.ui.cmboxAudioInput.addItem(audio_input.description, audio_input.id)
 
     def _read_settings(self):
         with self._settings.group('UI') as s:
@@ -131,9 +133,9 @@ class MainWindow(QMainWindow):
             self.restoreState(s.value('WindowState', self.saveState()))
 
         with self._settings.group('Audio') as s:
-            ainput = s.value('Input', 'Default')
+            audio_input_id = s.value('Input', AudioInputInfo.default_audio_input().id)
 
-        index = self.ui.cmboxAudioInput.findText(ainput)
+        index = self.ui.cmboxAudioInput.findData(audio_input_id)
         if index != -1:
             self.ui.cmboxAudioInput.setCurrentIndex(index)
 
@@ -143,11 +145,15 @@ class MainWindow(QMainWindow):
             s.setValue('WindowState', self.saveState())
 
         with self._settings.group('Audio') as s:
-            s.setValue('Input', self.ui.cmboxAudioInput.currentText())
+            s.setValue('Input', self.ui.cmboxAudioInput.currentData())
 
     def _remove_selected_records(self):
         indexes = self.ui.recordsTableView.selectionModel().selectedRows(0)
         self._records_manager.remove_records(indexes)
+
+    def _on_change_audio_input(self):
+        audio_device_id = self.ui.cmboxAudioInput.currentData()
+        self._audio_recorder.set_audio_input(AudioInputInfo.from_id(audio_device_id))
 
     def _on_finish_recording(self, record) -> None:
         self._records_manager.add_record(record)

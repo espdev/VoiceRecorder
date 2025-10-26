@@ -42,6 +42,11 @@ class Ui_MainWindow(object):
 
         self.cmboxAudioInput = QComboBox(self.centralwidget)
         self.cmboxAudioInput.setObjectName(u"cmboxAudioInput")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.cmboxAudioInput.sizePolicy().hasHeightForWidth())
+        self.cmboxAudioInput.setSizePolicy(sizePolicy)
 
         self.horizontalLayout_3.addWidget(self.cmboxAudioInput)
 

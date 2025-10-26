@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 import os
 
-from PySide6.QtCore import QObject, QModelIndex
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QModelIndex, QObject, Qt
 from tinydb import Query, TinyDB
 from tinydb.middlewares import CachingMiddleware
 from tinydb.storages import JSONStorage
 
-from .recordsmodel import RecordsTableModel, RecordsSortProxyModel
+from .recordsmodel import RecordsSortProxyModel, RecordsTableModel
 from .settings import Settings
 
 
