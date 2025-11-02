@@ -1,15 +1,13 @@
 [project]
 name = "voicerecorder"
-version = "0.5.3"
+version = "0.6.0"
 description = "VoiceRecorder is a simple application for voice/audio record"
 readme = "README.md"
 
 requires-python = ">=3.12"
 
 dependencies = [
-    "pyqt5>=5.15.11",
-    "av>=15.1.0",
-    "tinydb>=4.8.2",
+    "pyside6>=6.10.0",
 ]
 
 [project.gui-scripts]
@@ -46,6 +44,7 @@ exclude = [
     ".ruff_cache",
     ".cache",
     ".venv",
+    "*_ui.py",
 ]
 
 [tool.ruff.lint]
