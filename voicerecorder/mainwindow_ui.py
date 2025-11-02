@@ -93,7 +93,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.recordsTableView = QTableView(self.gboxRecords)
         self.recordsTableView.setObjectName(u"recordsTableView")
-        self.recordsTableView.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.recordsTableView.setEditTriggers(QAbstractItemView.EditTrigger.EditKeyPressed|QAbstractItemView.EditTrigger.SelectedClicked)
         self.recordsTableView.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         self.horizontalLayout_2.addWidget(self.recordsTableView)

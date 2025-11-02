@@ -118,13 +118,13 @@ class AudioRecorder(QMediaRecorder):
 
     def _finish_recording(self):
         ts = time.time()
-        datetime_format = self._settings.get_record_filename_format()
+        datetime_format = self._settings.record_filename_format()
         record_name = datetime.fromtimestamp(ts).strftime(datetime_format)
 
         record_location = Path(self.actualLocation().toLocalFile())
         suffix = self._suffix or record_location.suffix
 
-        new_record_location = self._settings.get_records_directory() / f'{record_name}{suffix}'
+        new_record_location = self._settings.records_directory() / f'{record_name}{suffix}'
         new_record_location.parent.mkdir(parents=True, exist_ok=True)
 
         if new_record_location != record_location:
@@ -134,6 +134,7 @@ class AudioRecorder(QMediaRecorder):
             Record(
                 filename=new_record_location.as_posix(),
                 duration=self.duration(),
-                timestamp=int(ts),
+                created=int(ts),
+                audio_format=QMediaFormat(self.mediaFormat()),
             )
         )

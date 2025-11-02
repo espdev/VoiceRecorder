@@ -23,7 +23,7 @@ class Settings:
         return self.app_config_dir() / f'{APP_NAME}.ini'
 
     def records_db_path(self) -> Path:
-        return self.app_config_dir() / 'records_db.json'
+        return self.app_config_dir() / 'records.db'
 
     @contextmanager
     def group(self, name: str) -> ContextManager[QSettings]:  # noqa
@@ -41,16 +41,16 @@ class Settings:
                 s.setValue(key, value)
         return value
 
-    def get_records_directory(self) -> Path:
+    def records_directory(self) -> Path:
         documents_dir = Path(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0])
         default_records_dir = documents_dir / APP_NAME
         return Path(self.set_default('Record', 'RecordsDirectory', default_records_dir.as_posix()))
 
-    def get_record_filename_format(self) -> str:
+    def record_filename_format(self) -> str:
         default_format = 'record-%d-%m-%Y-%H-%M-%S'
         return self.set_default('Record', 'RecordFilenameFormat', default_format)
 
-    def get_record_table_format(self) -> str:
+    def record_table_format(self) -> str:
         default_format = '%d.%m.%Y %H:%M:%S'
         return self.set_default('Record', 'RecordTableFormat', default_format)
 
