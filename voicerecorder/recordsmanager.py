@@ -47,12 +47,18 @@ class RecordsManager(QObject):
         if event.type() != QEvent.Type.KeyPress:
             return False
 
-        if event.key() == Qt.Key.Key_Delete:
-            self._delete_selected_records()
-            return True
-        elif event.key() == Qt.Key.Key_Space:
-            self._on_play_record()
-            return True
+        match event.key():
+            case Qt.Key.Key_Escape:
+                self._records_view.clearSelection()
+                return True
+
+            case Qt.Key.Key_Delete:
+                self._delete_selected_records()
+                return True
+
+            case Qt.Key.Key_Space:
+                self._play_record()
+                return True
 
         return False
 
@@ -142,13 +148,13 @@ class RecordsManager(QObject):
         self._records_view.setItemDelegateForColumn(self._field_index('created'), DateDelegate(self._settings))
         self._records_view.setItemDelegateForColumn(self._field_index('duration'), DurationDelegate())
 
-        self._records_view.doubleClicked.connect(self._on_play_record)
+        self._records_view.doubleClicked.connect(self._play_record)
         self._records_view.installEventFilter(self)
 
     def _record_filename(self, row: int) -> str:
         return self._records_model.record(row).value('filename')
 
-    def _on_play_record(self, index: QModelIndex = None):
+    def _play_record(self, index: QModelIndex = None):
         if index is None:
             index = self._records_view.currentIndex()
         filename = self._record_filename(index.row())
