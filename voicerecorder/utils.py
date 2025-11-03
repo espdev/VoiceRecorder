@@ -1,15 +1,15 @@
-import datetime
+from datetime import datetime, timedelta
 
 from PySide6.QtMultimedia import QMediaFormat
 
 
 def format_duration(duration: int) -> str:
-    duration_delta = datetime.timedelta(seconds=duration // 1000)
+    duration_delta = timedelta(seconds=duration // 1000)
     return str(duration_delta)
 
 
 def format_timestamp(timestamp: int | float, fmt: str) -> str:
-    return datetime.datetime.fromtimestamp(timestamp).strftime(fmt)
+    return datetime.fromtimestamp(timestamp).strftime(fmt)
 
 
 def format_audio_format(audio_format: QMediaFormat) -> str:
