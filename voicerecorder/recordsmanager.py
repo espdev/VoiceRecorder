@@ -204,7 +204,9 @@ class RecordsManager(QObject):
         if index is None:
             index = self._records_view.currentIndex()
         filename = self._record_filename(index.row())
-        QDesktopServices.openUrl(QUrl.fromLocalFile(filename))
+
+        if Path(filename).exists():
+            QDesktopServices.openUrl(QUrl.fromLocalFile(filename))
 
     def _open_recording_location(self, index: QModelIndex | None = None):
         if not index:
@@ -214,24 +216,25 @@ class RecordsManager(QObject):
 
         filename = self._record_filename(index.row())
 
-        if sys.platform == 'win32':
-            file_managers = [
-                ['explorer', f'/select,{Path(filename)}'],
-            ]
-        else:
-            file_managers = [
-                ['dolphin', '--select', filename],
-                ['nautilus', '--select', filename],
-                ['thunar', '--select', filename],
-            ]
+        if Path(filename).exists():
+            if sys.platform == 'win32':
+                file_managers = [
+                    ['explorer', f'/select,{Path(filename)}'],
+                ]
+            else:
+                file_managers = [
+                    ['dolphin', '--select', filename],
+                    ['nautilus', '--select', filename],
+                    ['thunar', '--select', filename],
+                ]
 
-        for args in file_managers:
-            if which(args[0]):
-                try:
-                    subprocess.run(args)
-                    return
-                except OSError:
-                    continue
+            for args in file_managers:
+                if which(args[0]):
+                    try:
+                        subprocess.run(args)
+                        return
+                    except OSError:
+                        continue
 
         location = Path(filename).parent.as_posix()
         QDesktopServices.openUrl(QUrl.fromLocalFile(location))
