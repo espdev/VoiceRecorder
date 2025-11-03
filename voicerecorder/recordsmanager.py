@@ -95,7 +95,7 @@ class RecordsManager(QObject):
                 self._delete_selected_records()
                 return True
 
-            case Qt.Key.Key_Space:
+            case Qt.Key.Key_Space | Qt.Key.Key_P | 0x417:
                 self._play_record()
                 return True
 
@@ -258,7 +258,9 @@ class RecordsManager(QObject):
             menu.addAction(
                 self.tr('Open file location'), QKeySequence(Qt.Key.Key_O), lambda: self._open_recording_location(index)
             )
-            menu.addAction(self.tr('Play record'), QKeySequence(Qt.Key.Key_Space), lambda: self._play_record(index))
+            menu.addAction(
+                self.tr('Play record'), QKeySequence(Qt.Key.Key_P, Qt.Key.Key_Space), lambda: self._play_record(index)
+            )
             delete_text = self.tr('Delete record')
         else:
             delete_text = self.tr('Delete %n records', None, selected_count)
