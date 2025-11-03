@@ -1,11 +1,14 @@
 from dataclasses import dataclass
 from pathlib import Path
+from shutil import which
+import subprocess
+import sys
 
 from PySide6.QtCore import QEvent, QModelIndex, QObject, Qt, QUrl
-from PySide6.QtGui import QDesktopServices, QKeyEvent
+from PySide6.QtGui import QDesktopServices, QKeyEvent, QKeySequence
 from PySide6.QtMultimedia import QMediaFormat
 from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlTableModel
-from PySide6.QtWidgets import QHeaderView, QStyledItemDelegate, QTableView
+from PySide6.QtWidgets import QHeaderView, QMenu, QStyledItemDelegate, QTableView
 
 from .settings import Settings
 from .utils import format_audio_format, format_duration, format_timestamp
@@ -94,6 +97,10 @@ class RecordsManager(QObject):
 
             case Qt.Key.Key_Space:
                 self._play_record()
+                return True
+
+            case Qt.Key.Key_O | 0x429:
+                self._open_recording_location()
                 return True
 
         return False
@@ -187,6 +194,9 @@ class RecordsManager(QObject):
         self._records_view.doubleClicked.connect(self._play_record)
         self._records_view.installEventFilter(self)
 
+        self._records_view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self._records_view.customContextMenuRequested.connect(self._show_records_context_menu)
+
     def _record_filename(self, row: int) -> str:
         return self._records_model.record(row).value('filename')
 
@@ -194,7 +204,37 @@ class RecordsManager(QObject):
         if index is None:
             index = self._records_view.currentIndex()
         filename = self._record_filename(index.row())
-        QDesktopServices.openUrl(QUrl(filename))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(filename))
+
+    def _open_recording_location(self, index: QModelIndex | None = None):
+        if not index:
+            index = self._records_view.currentIndex()
+        if not index.isValid():
+            return
+
+        filename = self._record_filename(index.row())
+
+        if sys.platform == 'win32':
+            file_managers = [
+                ['explorer', f'/select,{Path(filename)}'],
+            ]
+        else:
+            file_managers = [
+                ['dolphin', '--select', filename],
+                ['nautilus', '--select', filename],
+                ['thunar', '--select', filename],
+            ]
+
+        for args in file_managers:
+            if which(args[0]):
+                try:
+                    subprocess.run(args)
+                    return
+                except OSError:
+                    continue
+
+        location = Path(filename).parent.as_posix()
+        QDesktopServices.openUrl(QUrl.fromLocalFile(location))
 
     def _delete_selected_records(self):
         indexes = self._records_view.selectionModel().selectedRows(0)
@@ -205,3 +245,24 @@ class RecordsManager(QObject):
             self._records_model.removeRow(row)
 
         self._submit_changes()
+
+    def _show_records_context_menu(self, pos):
+        index = self._records_view.indexAt(pos)
+        if not index.isValid():
+            return
+
+        selected_indexes = self._records_view.selectionModel().selectedRows(0)
+        menu = QMenu()
+
+        if (selected_count := len(selected_indexes)) == 1:
+            menu.addAction(
+                self.tr('Open file location'), QKeySequence(Qt.Key.Key_O), lambda: self._open_recording_location(index)
+            )
+            menu.addAction(self.tr('Play record'), QKeySequence(Qt.Key.Key_Space), lambda: self._play_record(index))
+            delete_text = self.tr('Delete record')
+        else:
+            delete_text = self.tr('Delete %n records', None, selected_count)
+
+        menu.addAction(delete_text, QKeySequence(Qt.Key.Key_Delete), self._delete_selected_records)
+
+        menu.exec(self._records_view.viewport().mapToGlobal(pos))
