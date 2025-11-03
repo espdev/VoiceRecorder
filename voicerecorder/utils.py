@@ -4,16 +4,12 @@ from PySide6.QtMultimedia import QMediaFormat
 
 
 def format_duration(duration: int) -> str:
-    duration_delta = datetime.timedelta(milliseconds=duration)
-
-    mm, ss = divmod(duration_delta.seconds, 60)
-    hh, mm = divmod(mm, 60)
-
-    return f'{hh:d}:{mm:02d}:{ss:02d}'
+    duration_delta = datetime.timedelta(seconds=duration // 1000)
+    return str(duration_delta)
 
 
 def format_timestamp(timestamp: int | float, fmt: str) -> str:
-    return datetime.datetime.fromtimestamp(timestamp).strftime(f'{fmt}')
+    return datetime.datetime.fromtimestamp(timestamp).strftime(fmt)
 
 
 def format_audio_format(audio_format: QMediaFormat) -> str:
