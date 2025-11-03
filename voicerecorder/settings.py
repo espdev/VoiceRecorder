@@ -42,7 +42,7 @@ class Settings:
         return value
 
     def records_directory(self) -> Path:
-        documents_dir = Path(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.DocumentsLocation)[0])
+        documents_dir = Path(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.MusicLocation)[0])
         default_records_dir = documents_dir / APP_NAME
         return Path(self.set_default('Record', 'RecordsDirectory', default_records_dir.as_posix()))
 
