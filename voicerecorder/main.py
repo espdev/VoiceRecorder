@@ -3,12 +3,15 @@ VoiceRecorder is a simple application for voice recording
 
 """
 
+import os
 import sys
 
 from PySide6.QtWidgets import QApplication
 
 from voicerecorder import mainwindow
 from voicerecorder.constants import APP_NAME, APP_VERSION
+
+os.environ['QT_ENABLE_EXPERIMENTAL_CODECS'] = '1'
 
 
 def set_exception_hook():
