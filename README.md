@@ -1,7 +1,6 @@
 ## VoiceRecorder
 
-VoiceRecorder is a simple voice/audio recorder.
-The program is written in Python and PySide6.
+VoiceRecorder is a simple voice/audio recorder written in Python and Qt.
 
 ## Credits
 
