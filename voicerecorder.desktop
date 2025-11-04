@@ -5,5 +5,5 @@ Name=VoiceRecorder
 Comment=VoiceRecorder is a simple voice/audio recording application
 Exec=voicerecorder
 Icon=voicerecorder
-Categories=Audio;Utility;
+Categories=AudioVideo;Audio;
 Terminal=false
