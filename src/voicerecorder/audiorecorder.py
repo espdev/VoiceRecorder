@@ -24,6 +24,7 @@ from .settings import Settings
 class AudioInputInfo:
     """Audio input with info"""
 
+    device: QAudioDevice
     id: QByteArray
     description: str
 
@@ -37,6 +38,7 @@ class AudioInputInfo:
             description = f'{audio_device.description()} [{default_label}]'
 
         return cls(
+            device=audio_device,
             id=audio_device.id(),
             description=description,
         )
