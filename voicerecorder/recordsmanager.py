@@ -224,6 +224,7 @@ class RecordsManager(QObject):
             else:
                 file_managers = [
                     ['dolphin', '--select', filename],
+                    ['nemo', filename],
                     ['nautilus', '--select', filename],
                     ['thunar', '--select', filename],
                 ]
@@ -231,7 +232,7 @@ class RecordsManager(QObject):
             for args in file_managers:
                 if which(args[0]):
                     try:
-                        subprocess.run(args)
+                        subprocess.Popen(args)
                         return
                     except OSError:
                         continue
