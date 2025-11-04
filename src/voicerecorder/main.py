@@ -29,6 +29,7 @@ def main():
     app.setApplicationName(PKG_NAME)
     app.setApplicationDisplayName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
+    app.setDesktopFileName(PKG_NAME)
 
     win = mainwindow.MainWindow()
     win.show()
