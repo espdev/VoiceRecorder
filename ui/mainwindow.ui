@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="mainwindow.qrc">
+   <iconset resource="../voicerecorder.qrc">
     <normaloff>:/icons/mic</normaloff>:/icons/mic</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -64,7 +64,7 @@
          <string>Record</string>
         </property>
         <property name="icon">
-         <iconset resource="mainwindow.qrc">
+         <iconset resource="../voicerecorder.qrc">
           <normaloff>:/icons/record</normaloff>:/icons/record</iconset>
         </property>
         <property name="iconSize">
@@ -87,7 +87,7 @@
          <string>Pause</string>
         </property>
         <property name="icon">
-         <iconset resource="mainwindow.qrc">
+         <iconset resource="../voicerecorder.qrc">
           <normaloff>:/icons/pause</normaloff>:/icons/pause</iconset>
         </property>
         <property name="checkable">
@@ -147,7 +147,7 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
-  <include location="mainwindow.qrc"/>
+  <include location="../voicerecorder.qrc"/>
  </resources>
  <connections>
   <connection>

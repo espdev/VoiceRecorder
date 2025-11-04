@@ -1,0 +1,51 @@
+name: Build RPM
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-rpm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Build RPM in Fedora container
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            -w /work \
+            fedora:43 \
+            bash -euc '
+              dnf install -y \
+                rpm-build \
+                python3-devel \
+                python3-pip \
+                python3-packaging \
+                python3-wheel \
+                python3-hatchling \
+                pyproject-rpm-macros \
+                curl
+              curl -Ls https://astral.sh/uv/install.sh | sh
+              export PATH="$HOME/.local/bin:$PATH"
+
+              UV_VERSION_OUT=$(uv version)
+              NAME=$(echo "$UV_VERSION_OUT" | awk "{print \$1}")
+              VERSION=$(echo "$UV_VERSION_OUT" | awk "{print \$2}")
+
+              uv build --sdist
+
+              mkdir -p rpmbuild/SOURCES rpmbuild/SPECS
+              cp dist/${NAME}-${VERSION}.tar.gz rpmbuild/SOURCES/
+              cp rpm/${NAME}.spec rpmbuild/SPECS/
+
+              cd rpmbuild
+              rpmbuild -ba SPECS/${NAME}.spec --define "_topdir $(pwd)"
+            '
+
+      - name: Upload RPM artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: rpm-package
+          path: rpmbuild/RPMS/**/*.rpm

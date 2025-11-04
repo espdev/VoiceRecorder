@@ -7,7 +7,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 
 dependencies = [
-    "pyside6>=6.10.0",
+    "pyside6>=6.9.2",
 ]
 
 [project.gui-scripts]
@@ -31,10 +31,12 @@ package = true
 
 
 [tool.hatch.build.targets.sdist]
-include = ["voicerecorder"]
-
-[tool.hatch.build.targets.wheel]
-include = ["voicerecorder"]
+exclude = [
+    ".ruff_cache",
+    ".github",
+    ".cache",
+    ".venv",
+]
 
 
 [tool.ruff]
@@ -83,3 +85,6 @@ check = ["check-format", "check-lint"]
 fix-format = "ruff format ."
 fix-lint = "ruff check --fix ."
 fix = ["fix-format", "fix-lint"]
+
+rcc = "pyside6-rcc -o ./src/voicerecorder/voicerecorder_rc.py ./voicerecorder.qrc"
+uic = "pyside6-uic --from-imports -o ./src/voicerecorder/mainwindow_ui.py ./ui/mainwindow.ui"

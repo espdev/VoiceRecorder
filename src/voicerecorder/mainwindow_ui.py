@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QComboBox, QGrou
     QHBoxLayout, QHeaderView, QLabel, QMainWindow,
     QMenuBar, QPushButton, QSizePolicy, QSpacerItem,
     QStatusBar, QTableView, QVBoxLayout, QWidget)
-from . import mainwindow_rc
+from . import voicerecorder_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
