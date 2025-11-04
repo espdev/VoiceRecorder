@@ -47,6 +47,7 @@ exclude = [
     ".cache",
     ".venv",
     "*_ui.py",
+    "*_rc.py",
 ]
 
 [tool.ruff.lint]

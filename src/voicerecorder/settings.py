@@ -6,13 +6,14 @@ from PySide6.QtCore import QByteArray, QObject, QSettings, QStandardPaths
 from PySide6.QtMultimedia import QMediaDevices, QMediaFormat
 from PySide6.QtWidgets import QMainWindow
 
-from .constants import APP_NAME
+from .constants import APP_NAME, PKG_NAME
 
 
 class Settings:
     """Stores and manages the application settings"""
 
     def __init__(self, parent: QObject | None = None):
+        self.app_config_dir().mkdir(parents=True, exist_ok=True)
         self._settings = QSettings(str(self.settings_file_path()), QSettings.Format.IniFormat, parent)
 
     @staticmethod
@@ -20,7 +21,7 @@ class Settings:
         return Path(QStandardPaths.standardLocations(QStandardPaths.StandardLocation.AppConfigLocation)[0])
 
     def settings_file_path(self) -> Path:
-        return self.app_config_dir() / f'{APP_NAME}.ini'
+        return self.app_config_dir() / f'{PKG_NAME}.ini'
 
     def records_db_path(self) -> Path:
         return self.app_config_dir() / 'records.db'
@@ -67,7 +68,7 @@ class Settings:
             s.setValue('WindowState', window.saveState())
 
     def get_audio_input_id(self) -> QByteArray:
-        default_input_id = QMediaDevices.defaultAudioInput().id
+        default_input_id = QMediaDevices.defaultAudioInput().id()
         return self.set_default('Audio', 'Input', default_input_id)
 
     def set_audio_input_id(self, audio_input_id: QByteArray) -> None:

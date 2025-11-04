@@ -1,6 +1,8 @@
 from importlib.metadata import PackageNotFoundError, version
 
-APP_NAME = 'VoiceRecorder'
+from PySide6.QtWidgets import QApplication
+
+APP_NAME = QApplication.translate('Main', 'VoiceRecorder')
 PKG_NAME = 'voicerecorder'
 
 try:

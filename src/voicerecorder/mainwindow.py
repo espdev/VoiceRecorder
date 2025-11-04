@@ -3,7 +3,6 @@ from PySide6.QtWidgets import QHeaderView, QMainWindow, QStatusBar, QWidget
 
 from .audioformat import AudioFormat
 from .audiorecorder import AudioInputInfo, AudioRecorder, audio_inputs
-from .constants import APP_NAME, APP_VERSION
 from .mainwindow_ui import Ui_MainWindow
 from .recordsmanager import RecordsManager
 from .settings import Settings
@@ -19,7 +18,7 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.setWindowTitle(f'{APP_NAME} - {APP_VERSION}')
+        self.setWindowTitle('')
 
         self._settings = Settings(self)
         self._status_info = StatusInfo()
