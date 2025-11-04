@@ -171,7 +171,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyside6", specifier = ">=6.10.0" }]
+requires-dist = [{ name = "pyside6", specifier = ">=6.9.2" }]
 
 [package.metadata.requires-dev]
 dev = [

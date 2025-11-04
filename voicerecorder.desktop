@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=VoiceRecorder
+Comment=VoiceRecorder is a simple voice/audio recording application
+Exec=voicerecorder
+Icon=voicerecorder
+Categories=Audio;Utility;
+Terminal=false
